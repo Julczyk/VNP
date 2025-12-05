@@ -6,11 +6,6 @@ RESOURCES = {
     "uranium": 0.90
 }
 
-UNDERWATER_RESOURCES = {        ## TO DO - RESPAWNING RESOURCES
-    "clay": 0.2,
-    "sand": 0.7
-}
-
 class Tile:
     '''
     Class representing a single tile, its parameters and raw materials that the tile contains.
@@ -29,5 +24,15 @@ class Tile:
 
         if candidates:
             resource = max(candidates, key=lambda r: RESOURCES[r])
-            self.materials[resource] = max(abs(values[resource] - RESOURCES[resource])/1)
+            self.materials[resource] = abs(values[resource] - RESOURCES[resource])/1
 
+    def __repr__(self):
+        return "🍀"
+
+class WaterTile(Tile):
+    def __init__(self, depth: float):
+        self.depth = depth
+        self.materials = {}
+
+    def __repr__(self):
+        return "🌊"
