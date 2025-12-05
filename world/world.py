@@ -1,5 +1,5 @@
 import numpy as np
-from tile import Tile
+from tile import Tile, RESOURCES
 from perlin_noise import PerlinNoise
 
 class World:
@@ -11,10 +11,12 @@ class World:
         self.generate_map()
     
     def generate_map(self):
-        noise = PerlinNoise(octaves=4, seed=self.seed)
+        noise = {r: PerlinNoise(octaves=4, seed=self.seed + i)
+                          for i, r in enumerate(RESOURCES)}
         for i in range(self.height):
             for j in range(self.width):
-                self.map[i, j] = Tile(noise([i/100, j/100]))
+                current_resource_status = {r: noise[r]([i/100, j/100]) for r in noise.keys()}
+                self.map[i, j] = Tile(current_resource_status)
 
     # Roboczo - 1 jak jest surowiec 0 jak go nie ma
     def get_simplified_map(self):
@@ -24,6 +26,15 @@ class World:
                 if len(tile.materials):
                     simplified_map[i][j] = 1
         return simplified_map
-    
-world = World(10,10, 10)
-print(world.get_simplified_map())
+
+    def get_resource_map(self):
+        resource_map = np.zeros(self.map.shape, dtype=object)
+        for i, row in enumerate(self.map):
+            for j, tile in enumerate(row):
+                if len(tile.materials):
+                    resource_map[i][j] = list(tile.materials.keys())[0]
+        return resource_map
+
+if __name__ == "__main__":
+    world = World(30,30, 10)
+    print(world.get_resource_map())
