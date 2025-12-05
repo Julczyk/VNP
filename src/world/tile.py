@@ -6,6 +6,11 @@ RESOURCES = {
     "uranium": 0.90
 }
 
+UNDERWATER_RESOURCES = {        ## TO DO - RESPAWNING RESOURCES
+    "clay": 0.2,
+    "sand": 0.7
+}
+
 class Tile:
     '''
     Class representing a single tile, its parameters and raw materials that the tile contains.
@@ -24,4 +29,5 @@ class Tile:
 
         if candidates:
             resource = max(candidates, key=lambda r: RESOURCES[r])
-            self.materials[resource] = 1
+            self.materials[resource] = max(abs(values[resource] - RESOURCES[resource])/1)
+
