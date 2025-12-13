@@ -1,37 +1,73 @@
-from map import World # Import klasy World – generuje proceduralną mapę z Perlin noise
+RESOURCE_COLORS = {
+    "coal": arcade.color.DARK_GRAY,
+    "copper": arcade.color.COPPER,
+    "iron": arcade.color.LIGHT_SLATE_GRAY,
+    "gold": arcade.color.GOLD,
+    "uranium": arcade.color.LIME_GREEN,
+}
+
+LAND_COLOR = arcade.color.DARK_SPRING_GREEN
 import arcade
+from map import World
+from tile import WaterTile
 
-TILE_SIZE = 16 # Rozmiar jednego kafelka w pikselach
+TILE_SIZE = 20
+SCREEN_MARGIN = 20
 
-class WorldWindow(arcade.Window):
-    # rysowanie kafelków w czasie rzeczywistym
+RESOURCE_COLORS = {
+    "coal": arcade.color.DARK_GRAY,
+    "copper": arcade.color.COPPER,
+    "iron": arcade.color.LIGHT_SLATE_GRAY,
+    "gold": arcade.color.GOLD,
+    "uranium": arcade.color.LIME_GREEN,
+}
 
-    def __init__(self, world):
-        # ustawienie rozmiaru okna na rozmiar świata (szerokosc * rozmiar kafla, wysokosc * rozmiar kafla)
-        super().__init__(world.width * TILE_SIZE, world.height * TILE_SIZE, "World")
+LAND_COLOR = arcade.color.DARK_SPRING_GREEN
+
+
+class WorldView(arcade.Window):
+    def __init__(self, world: World):
+        width = world.width * TILE_SIZE + SCREEN_MARGIN * 2
+        height = world.height * TILE_SIZE + SCREEN_MARGIN * 2
+        super().__init__(width, height, "World visualization")
+
         self.world = world
+        arcade.set_background_color(arcade.color.BLACK)
 
     def on_draw(self):
-        # w tej funkcji rysuje mape
         self.clear()
+
         for i in range(self.world.height):
             for j in range(self.world.width):
-                tile = self.world.map[i][j] # pobranie kafla tile
+                tile = self.world.map[i, j]
 
-                if "steel" in tile.materials: #jezeli kafel ma stal -> kolorujemy na zolto
-                    color = arcade.color.GOLD
+                x = SCREEN_MARGIN + j * TILE_SIZE + TILE_SIZE / 2
+                y = SCREEN_MARGIN + i * TILE_SIZE + TILE_SIZE / 2
+
+                # woda
+                if isinstance(tile, WaterTile):
+                    depth = min(tile.depth, 1.0)
+                    blue = int(150 + 105 * depth)
+                    color = (0, 0, blue)
                 else:
-                    color = arcade.color.DARK_GRAY # jesli nie -> kolorujemy na szaro
+                    # land
+                    color = LAND_COLOR
 
-                # wspolrzedne prostokata ktory rysujemy
-                arcade.draw_lrbt_rectangle_filled(
-                    left=j * TILE_SIZE,
-                    right=j * TILE_SIZE + TILE_SIZE,
-                    bottom=i * TILE_SIZE,
-                    top=i * TILE_SIZE + TILE_SIZE,
-                    color=color
+                    if tile.materials:
+                        resource = list(tile.materials.keys())[0]
+                        color = RESOURCE_COLORS.get(resource, LAND_COLOR)
+
+                arcade.draw_lbwh_rectangle_filled(
+                    x,
+                    y,
+                    TILE_SIZE,
+                    TILE_SIZE,
+                    color
                 )
 
-world = World(50, 50, 10)
-window = WorldWindow(world)
-arcade.run()
+
+if __name__ == "__main__":
+    world = World(30, 30, seed=10)
+    window = WorldView(world)
+    arcade.run()
+
