@@ -1,3 +1,6 @@
+from map import World # Import klasy World – generuje proceduralną mapę z Perlin noise
+import arcade
+
 RESOURCE_COLORS = {
     "coal": arcade.color.DARK_GRAY,
     "copper": arcade.color.COPPER,
@@ -7,8 +10,7 @@ RESOURCE_COLORS = {
 }
 
 LAND_COLOR = arcade.color.DARK_SPRING_GREEN
-import arcade
-from map import World
+
 from tile import WaterTile
 
 TILE_SIZE = 20
