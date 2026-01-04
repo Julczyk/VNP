@@ -93,3 +93,101 @@ class Storage(Part):
         pass
 
 # ... (Implementacja Huty, Assemblera analogicznie)
+class Smelter(Part):
+    def get_function_id(self):
+        return FunctionID.SMELT.value
+
+    def execute_action(self, robot, args: list[float]):
+        """
+        f_4(amount)
+        Przetwarza RAW_ORE -> PROCESSED_METAL
+        """
+        amount = max(1, int(args[0]))  # ilość jednostek rudy
+        energy_cost = amount * self.active_energy_cost
+
+        storage = self._get_storage(robot)
+        if storage is None:
+            return False
+
+        # Sprawdzenia niepodzielności
+        if storage.contents.get(ResourceType.RAW_ORE, 0) < amount:
+            return False
+
+        if not storage.has_space(amount):
+            return False
+
+        if not robot.consume_energy(energy_cost):
+            return False
+
+        # Wykonanie procesu
+        storage.contents[ResourceType.RAW_ORE] -= amount
+        storage.add_item(ResourceType.PROCESSED_METAL, amount)
+        return True
+
+    def _get_storage(self, robot):
+        for p in robot.parts:
+            if isinstance(p, Storage):
+                return p
+        return None
+
+
+PART_RECIPES = {
+    ResourceType.PART_ENGINE: {
+        ResourceType.PROCESSED_METAL: 10,
+        "energy": 20
+    },
+    ResourceType.PART_SCANNER: {
+        ResourceType.PROCESSED_METAL: 8,
+        "energy": 15
+    }
+}
+
+
+class Assembler(Part):
+    def get_function_id(self):
+        return FunctionID.ASSEMBLE.value
+
+    def execute_action(self, robot, args: list[float]):
+        """
+        f_5(partID)
+        Produkuje część i odkłada ją do magazynu
+        """
+        part_id = int(args[0])
+        part_type = ResourceType(part_id)
+
+        if part_type not in PART_RECIPES:
+            return False
+
+        recipe = PART_RECIPES[part_type]
+        storage = self._get_storage(robot)
+        if storage is None:
+            return False
+
+        # Sprawdzenie zasobów
+        for res, amt in recipe.items():
+            if res == "energy":
+                continue
+            if storage.contents.get(res, 0) < amt:
+                return False
+
+        if not storage.has_space(1):
+            return False
+
+        if not robot.consume_energy(recipe["energy"] * self.scale):
+            return False
+
+        # Zużycie zasobów
+        for res, amt in recipe.items():
+            if res == "energy":
+                continue
+            storage.contents[res] -= amt
+
+        # Dodanie gotowej części
+        storage.add_item(part_type, 1)
+        return True
+
+    def _get_storage(self, robot):
+        for p in robot.parts:
+            if isinstance(p, Storage):
+                return p
+        return None
