@@ -92,6 +92,34 @@ class Storage(Part):
         # Dodaje przedmiot, jeśli jest miejsce. Jeśli nie - ucina lub anuluje
         pass
 
+    def get_cargo_mass(self):
+        """ Zwraca całkowitą masę ładunku w tym magazynie."""
+        from config import RESOURCE_MASS
+
+        total_mass = 0.0
+        for resource, amount in self.contents.items():
+            mass_per_unit = RESOURCE_MASS.get(resource, 0.0)
+            total_mass += mass_per_unit * amount
+
+        return total_mass
+
+class PowerGenerator(Part):
+    """ Źródło energii (abstrakcyjnie) """
+
+    def __init__(self, scale):
+        super().__init__(scale)
+        self.energy_output = 2.0 * scale   # ile energii produkuje w IDLE
+
+    def get_function_id(self):
+        return FunctionID.IDLE.value
+
+    def execute_action(self, robot, args: list[float]):
+        """ IDLE -> produkcja energii """
+        robot.energy += self.energy_output
+        return True
+
+    # można dodać więcej typów generatorów energii tutaj (jakieś paliwo, słońce itp.)
+
 # ... (Implementacja Huty, Assemblera analogicznie)
 class Smelter(Part):
     def get_function_id(self):

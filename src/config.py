@@ -19,3 +19,23 @@ class ResourceType(Enum):
     PART_ENGINE = 101
     PART_SCANNER = 102
     # ...
+
+
+# --------------------------
+# Parametry fizyczne zasobów:
+
+RESOURCE_MASS = {
+    ResourceType.ENERGY: 0.0,
+    ResourceType.RAW_ORE: 2.0,
+    ResourceType.PROCESSED_METAL: 1.0,
+
+    # Części jako ładunek
+    ResourceType.PART_ENGINE: 10.0,
+    ResourceType.PART_SCANNER: 8.0,
+}
+
+PART_RESOURCE_MAP = {
+    "Engine": ResourceType.PART_ENGINE,
+    "Scanner": ResourceType.PART_SCANNER,
+}
+
