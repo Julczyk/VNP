@@ -1,5 +1,5 @@
 from parts import Part, Engine, Scanner, Storage
-from config import FunctionID
+from config import FunctionID, ResourceType
 from interpreter import Interpreter
 
 
@@ -170,6 +170,20 @@ class Automaton:
         if not self.alive:
             return
 
+        wreck_resources = self.get_wreck_resources()
+
+        # Nie wiem jak ta metoda będzie się nazywała w świecie,
+        # więc testuję nazwy... (próba przekazania zasobów wraku)
+        for method_name in ("drop_resources", "add_resources", "spawn_resources"):
+            dropper = getattr(self.world, method_name, None)
+            if callable(dropper):
+                try:
+                    dropper(self.position, wreck_resources)
+                except TypeError:
+                    pass
+                break
+
+        # Oznacz jako martwy i usuń
         self.alive = False
 
         # Nie wiem jak ta metoda będzie się nazywała w świecie,
@@ -182,3 +196,29 @@ class Automaton:
                 except TypeError:
                     pass
                 break
+
+    def get_wreck_resources(self):
+        """
+        Zwraca dict {ResourceType: amount} zasobów,
+        które pozostają po śmierci automatu.
+        """
+
+        wreck = {}
+
+        # Zawartość magazynów
+        for storage in self.get_storage_parts():
+            for res, amt in storage.contents.items():
+                wreck[res] = wreck.get(res, 0) + amt
+
+        # Części automatu -> metal
+        total_metal = 0
+        for part in self.parts:
+            total_metal += int(part.mass * 0.5)
+
+        if total_metal > 0:
+            wreck[ResourceType.PROCESSED_METAL] = (
+                wreck.get(ResourceType.PROCESSED_METAL, 0) + total_metal
+            )
+
+        return wreck
+
