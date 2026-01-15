@@ -1,4 +1,5 @@
-#projektowe #sonda
+Poniżej znajduje się opis gramatyki języka VNP używanego w projekcie symulacji automatów samoreplikujących się.
+Wygeneruj plik gramatyki ANTLR4 (.g4) na jego podstawie:
 
 # Nagłówek budowy
 program zaczyna się spisem części, który zaczyna się znacznikiem kluczowym `$PARTS:`
@@ -50,7 +51,7 @@ Na przykład:
 		<Warunek>
 		{<blok3>
 			REDO
-		}	
+		}
 	}
 	<dalszy kod>
 }

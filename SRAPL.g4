@@ -1,79 +1,150 @@
 grammar SRAPL;
 
-// ============
-// PARSER RULES
-// ============
+/*
+ * Parser Rules
+ */
 
-program
-    : statement* EOF
+// Główny punkt wejścia
+file
+    : partsSection programmSection EOF
     ;
 
+// --- Sekcja części ---
+// Zgodnie z opisem: $PARTS: lista floatów oddzielona przecinkami, kończy się średnikiem.
+// Uwzględniono elastyczność (dwukropek opcjonalny, jak w przykładzie).
+partsSection
+    : PARTS_HEADER floatList SEMI
+    ;
+
+floatList
+    : value (COMMA value)*
+    ;
+
+// Wartość liczbowa (akceptujemy int jako float, np. 0 zamiast 0.0)
+value
+    : FLOAT
+    | INT
+    ;
+
+// --- Sekcja programu ---
+programmSection
+    : PROGRAM_HEADER blockContent
+    ;
+
+// Zawartość bloku kodu (lista instrukcji)
+blockContent
+    : statement*
+    ;
+
+// Pojedyncza instrukcja
 statement
-    : block                 # BlockStmt
-    | assignment ';'        # AssignStmt   // Średnik wymagany
-    | ifStatement           # IfStmt       // IF ma własne klamry, nie wymaga średnika
-    | controlCommand ';'    # ControlStmt  // Średnik wymagany
-    | actionCall ';'        # ActionStmt   // Średnik wymagany
+    : assignment      // Przypisanie: X[i] = ...
+    | functionCall    // Wywołanie: f_n(...)
+    | ifStatement     // Warunek: IF(...) { ... }
+    | redoStatement   // Pętla: REDO
+    | restartStatement // Restart: RESTART
+    | block           // Zagnieżdżony blok: { ... }
     ;
 
+// Blok kodu w klamrach
 block
-    : '{' statement* '}'
+    : LBRACE blockContent RBRACE
     ;
 
+// Przypisanie wartości do pamięci
 assignment
-    : memoryCell '=' expr
+    : memoryRef ASSIGN expression SEMI
     ;
 
+// Wywołanie funkcji części (kończy krok, ale gramatycznie to po prostu instrukcja)
+functionCall
+    : FUNC_ID LPAREN argList? RPAREN SEMI
+    ;
+
+argList
+    : expression (COMMA expression)*
+    ;
+
+// Instrukcja warunkowa
 ifStatement
-    : IF '(' expr ')' block
+    : IF LPAREN expression RPAREN block
     ;
 
-controlCommand
-    : REDO
-    | RESTART
+// Słowa kluczowe sterujące przepływem
+redoStatement
+    : REDO SEMI
     ;
 
-actionCall
-    : FunctionID '(' (expr (',' expr)*)? ')'
+restartStatement
+    : RESTART SEMI
     ;
 
-memoryCell
-    : MEM_TAG '[' expr ']'
+// Odwołanie do pamięci X[i]
+memoryRef
+    : MEM_TAG LBRACK INT RBRACK
     ;
 
-expr
-    : '(' expr ')'              # ParenExpr
-    | memoryCell                # MemoryExpr
-    | Number                    # NumberExpr
-    | '-' expr                  # UnaryMinusExpr
-    | <assoc=right> expr '**' expr  # PowerExpr
-    | expr ('*'|'/') expr       # MulDivExpr
-    | expr ('+'|'-') expr       # AddSubExpr
+// Wyrażenia matematyczne
+expression
+    : LPAREN expression RPAREN             # parensExpr
+    | expression POWER expression          # powerExpr
+    | expression (MUL | DIV) expression    # mulDivExpr
+    | expression (PLUS | MINUS) expression # addSubExpr
+    | memoryRef                            # variableExpr
+    | value                                # atomExpr
     ;
 
-// ===========
-// LEXER RULES
-// ===========
+/*
+ * Lexer Rules
+ */
 
-IF      : 'IF';
-REDO    : 'REDO';
-RESTART : 'RESTART';
+// Nagłówki sekcji
+PARTS_HEADER: '$PARTS' ':'? ; // Dwukropek opcjonalny, aby pasował i do opisu i do przykładu
+PROGRAM_HEADER: '$PROGRAMM' ;
 
-MEM_TAG : [xX];
-FunctionID : 'f_' [0-9]+;
+// Słowa kluczowe
+IF: 'IF' ;
+REDO: 'REDO' ;
+RESTART: 'RESTART' ;
 
-// Liczby (tylko wartość bezwzględna, znak obsługuje parser)
-Number
-    : [0-9]+ ('.' [0-9]+)?
+// Identyfikatory
+MEM_TAG: 'X' ;             // Oznaczenie pamięci
+FUNC_ID: 'f_' [0-9]+ ;     // Funkcje postaci f_0, f_1, f_12
+
+// Operatory
+ASSIGN: '=' ;
+PLUS:   '+' ;
+MINUS:  '-' ;
+MUL:    '*' ;
+DIV:    '/' ;
+POWER:  '**' ;
+
+// Separatory
+LPAREN: '(' ;
+RPAREN: ')' ;
+LBRACE: '{' ;
+RBRACE: '}' ;
+LBRACK: '[' ;
+RBRACK: ']' ;
+SEMI:   ';' ;
+COMMA:  ',' ;
+
+// Liczby
+FLOAT
+    : [0-9]+ '.' [0-9]*
+    | '.' [0-9]+
     ;
 
-// Średnik jako osobny token
-SEMI : ';';
-
-WS
-    : [ \t\r\n]+ -> skip
+INT
+    : [0-9]+
     ;
 
+// Komentarze (ignorowane)
 COMMENT
     : '#' ~[\r\n]* -> skip
+    ;
+
+// Białe znaki (ignorowane)
+WS
+    : [ \t\r\n]+ -> skip
     ;

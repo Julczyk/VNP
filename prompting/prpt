@@ -1,0 +1,6 @@
+W załączonych plikach masz codebase do pythonowego projektu symulacji automatów samoreplikujących się i używających programów we
+własnym języku, który jest wyposażony w algorytm genetyczny. Specyfikacja automatów, środowiska oraz języka znajduje się w docs.
+w src/vnp są rzeczy wygemerowane za pomocą ANTLR4 z poprzedniej instrukcji.
+Proszę, odpowiednio zmodyfikuj i/lub dopisz funkcje, które pozwolą na działanie języka zgodne ze specyfikacją.
+Zajmij się językiem, nie światem/symulacją.
+Napisz kilka testowych programów i poinstruuj mnie, jak je uruchomić/debugować.

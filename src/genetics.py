@@ -18,6 +18,7 @@ class Mutator:
     def mutate_program(program_ast):
         """
         Modyfikuje drzewo programu (zmienia stałe, operatory, lub podmienia poddrzewa).
+        Najlepiej, żeby każdy obiekt AST miał metodę `mutate()` do losowej mutacji siebie samego.
         """
         # To jest trudne, wymaga operacji na AST
         pass
