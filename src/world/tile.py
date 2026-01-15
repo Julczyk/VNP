@@ -1,38 +1,34 @@
-RESOURCES = {
-    "coal": 0.25,
-    "copper": 0.45,
-    "iron": 0.60,
-    "gold": 0.75,
-    "uranium": 0.90
-}
+from config import ResourceType
+
 
 class Tile:
-    '''
-    Class representing a single tile, its parameters and raw materials that the tile contains.
+    """
+    Reprezentuje pojedynczy kafelek lądu.
+    Może zawierać surowce (np. RAW_ORE).
+    """
 
-    Attributes:
-        materials : dict
-            Dictionary, where key is type of material and value its quantity.
-    '''
-    def __init__(self, values):
-        self.materials = {}
+    def __init__(self):
+        # słownik zasobów na kafelku
+        # np. {ResourceType.RAW_ORE: 12}
+        self.materials: dict[ResourceType, float] = {}
 
-        candidates = [
-            r for r, threshold in RESOURCES.items()
-            if values[r] > threshold
-        ]
-
-        if candidates:
-            resource = max(candidates, key=lambda r: RESOURCES[r])
-            self.materials[resource] = abs(values[resource] - RESOURCES[resource])/1
+    def has_resources(self) -> bool:
+        """Czy kafelek zawiera jakiekolwiek zasoby"""
+        return bool(self.materials)
 
     def __repr__(self):
         return "🍀"
 
+
 class WaterTile(Tile):
-    def __init__(self, depth: float):
+    """
+    Kafelek wody - nie zawiera zasobów,
+    ale ma głębokość (do wizualizacji).
+    """
+
+    def __init__(self, depth: float = 0.0):
+        super().__init__()
         self.depth = depth
-        self.materials = {}
 
     def __repr__(self):
         return "🌊"
