@@ -1,8 +1,8 @@
 import sys
 from antlr4 import *
-from SRAPLLexer import SRAPLLexer
-from SRAPLParser import SRAPLParser
-from SRAPLVisitor import SRAPLVisitor
+from src.sraplBase.SRAPLParser import SRAPLParser
+from src.sraplBase.SRAPLVisitor import SRAPLVisitor
+from src.sraplBase.SRAPLLexer import SRAPLLexer
 from config import FunctionID
 
 # Wyjątki sterujące przepływem (nie są błędami, lecz sygnałami)
@@ -52,6 +52,9 @@ class SRAPLExecutionVisitor(SRAPLVisitor):
 
     def visitAssignment(self, ctx: SRAPLParser.AssignmentContext):
         # X[i] = expr
+        # Debugowanie
+        print(f"DEBUG: Memory updated: {self.memory}")
+
         mem_idx = int(ctx.memoryRef().INT().getText())
         value = self.visit(ctx.expression())
         
