@@ -1,0 +1,27 @@
+$PARTS
+1.0,
+3.0,
+5.3,
+0.7,
+0.0,
+0.0,
+1.8
+
+
+$PROGRAMM
+# X[0] - energia, X[1] - odległość do przeszkody
+IF (X[0] - 10.0) {
+    # Mamy energię > 10
+    IF (5.0 - X[1]) {
+        # Przeszkoda bliżej niż 5 jednostek -> Skręt
+        f_2(90.0);
+    }
+    # Brak przeszkody -> Naprzód
+    f_1(1.0);
+}
+
+# X[2] = X[0] * 2.7 - (X[1] / 4.8);
+# f_4(1.3, X[0]+4.7);
+# Jeśli tu dotarliśmy, energii jest mało (< 10)
+X[5] = X[0] * 1.1; # Zapisz statystykę do pamięci (opcjonalne)
+f_0(); # Stan spoczynku / ładowania
