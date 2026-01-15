@@ -1,7 +1,7 @@
 import math
 from abc import ABC, abstractmethod
 from config import FunctionID, ResourceType
-
+import random
 
 class Part(ABC):
     """
@@ -12,7 +12,7 @@ class Part(ABC):
         self.scale = scale
         # Masa i zużycie energii skalują się liniowo lub nieliniowo
         self.mass = 10.0 * scale
-        self.passive_energy_drain = 0.1 * scale
+        self.passive_energy_drain = 0.01 * scale
         self.active_energy_cost = 1.0 * scale
 
     @abstractmethod
@@ -27,27 +27,39 @@ class Part(ABC):
         """
         pass
 
-
 class Engine(Part):
     def get_function_id(self):
         return FunctionID.MOVE.value
 
     def execute_action(self, robot, args: list[float]):
-        """
-        f_1(dir, dist).
-        Porusza robotem. Koszt zależy od masy całkowitej robota.
-        """
-        direction = int(args[0])
-        distance = min(args[1], self.scale * 10)  # Max dystans zależy od skali
+        # --- direction ---
+        if isinstance(args[0], str) and args[0].startswith("MEM"):
+            mem_idx = int(args[0][3:])
+            direction = int(robot.memory[mem_idx])
+        else:
+            direction = int(args[0])
 
-        # Obliczenie kosztu energii (Masa * Dystans * Współczynnik)
+        # --- distance ---
+        if isinstance(args[1], str) and args[1].startswith("MEM"):
+            mem_idx = int(args[1][3:])
+            distance = int(robot.memory[mem_idx])
+        else:
+            distance = int(args[1])
+
+        # jeśli nie mamy celu / bez sensu → losowy krok
+        if direction < 0 or distance <= 0:
+            direction = random.randint(0, 3)
+            distance = 1
+
+        distance = min(distance, int(self.scale * 10))
+
         energy_req = robot.get_total_mass() * distance * 0.05
 
         if robot.consume_energy(energy_req):
-            robot.world.move_robot(robot, direction, distance)
-        else:
-            # Brak energii - ruch nieudany, powinno wyczerpać energię do zera i się zatrzymać
-            pass
+            robot.world.move_robot(robot, direction, 1)
+            return True
+
+        return False
 
 
 class Scanner(Part):
@@ -68,7 +80,8 @@ class Scanner(Part):
             # Konwencja: X[0] = dir, X[1] = dist
             robot.memory[0] = result['dir']
             robot.memory[1] = result['dist']
-
+            if result['dir'] < 0:
+                robot.memory[1] = -1  # wymuś losowy krok w Engine
 
 class Storage(Part):
     def __init__(self, scale):
@@ -88,10 +101,6 @@ class Storage(Part):
         current_load = sum(self.contents.values())
         return (current_load + amount) <= self.capacity
 
-    def add_item(self, item_type, amount):
-        # Dodaje przedmiot, jeśli jest miejsce. Jeśli nie - ucina lub anuluje
-        pass
-
     def get_cargo_mass(self):
         """ Zwraca całkowitą masę ładunku w tym magazynie."""
         from config import RESOURCE_MASS
@@ -102,23 +111,32 @@ class Storage(Part):
             total_mass += mass_per_unit * amount
 
         return total_mass
+    
+    def add_item(self, item_type, amount):
+        if not self.has_space(amount):
+            return False
+
+        self.contents[item_type] = self.contents.get(item_type, 0) + amount
+        return True
+
 
 class PowerGenerator(Part):
-    """ Źródło energii (abstrakcyjnie) """
+    """ Źródło energii (pasywne) """
 
     def __init__(self, scale):
         super().__init__(scale)
-        self.energy_output = 2.0 * scale   # ile energii produkuje w IDLE
+        self.energy_output = 5.0 * scale
 
     def get_function_id(self):
-        return FunctionID.IDLE.value
+        # Generator NIE jest wywoływany jako akcja
+        return None
 
-    def execute_action(self, robot, args: list[float]):
-        """ IDLE -> produkcja energii """
-        robot.energy += self.energy_output
-        return True
+    def execute_action(self, robot, args):
+        # Generator nie wykonuje aktywnej akcji
+        return False
 
-    # można dodać więcej typów generatorów energii tutaj (jakieś paliwo, słońce itp.)
+    def produce_energy(self, robot):
+        robot.energy = min(robot.energy + self.energy_output, robot.max_energy)
 
 # ... (Implementacja Huty, Assemblera analogicznie)
 class Smelter(Part):
@@ -219,3 +237,63 @@ class Assembler(Part):
             if isinstance(p, Storage):
                 return p
         return None
+
+class Collector(Part):
+    """
+    Część odpowiedzialna za zbieranie zasobów z kafelka,
+    na którym znajduje się automat.
+    """
+
+    def get_function_id(self):
+        return FunctionID.COLLECT.value
+
+    def execute_action(self, robot, args: list[float]):
+        """
+        f_COLLECT(amount)
+        Zbiera zasoby z aktualnego kafelka lub sąsiedztwa.
+        """
+        print(">>> COLLECT EXECUTED")
+
+        # --- 1. Ile zbieramy ---
+        amount = int(args[0]) if args else 1
+        amount = max(1, amount)
+
+        # --- 2. Koszt energetyczny ---
+        energy_cost = amount * self.active_energy_cost
+        if not robot.consume_energy(energy_cost):
+            return False
+
+        # --- 3. Pozycje do sprawdzenia (zasięg manipulacyjny) ---
+        x, y = robot.position
+        positions = [
+            (x, y),
+            (x + 1, y), (x - 1, y),
+            (x, y + 1), (x, y - 1),
+        ]
+
+        # --- 4. Magazyn ---
+        storages = robot.get_storage_parts()
+        if not storages:
+            return False
+        storage = storages[0]
+
+        # --- 5. Próba zebrania ---
+        for pos in positions:
+            if not (0 <= pos[0] < robot.world.width and 0 <= pos[1] < robot.world.height):
+                continue
+
+            collected = robot.world.take_resources(pos, amount)
+            if collected:
+                for res, amt in collected.items():
+                    storage.contents[res] = storage.contents.get(res, 0) + amt
+
+                robot.energy = min(robot.max_energy, robot.energy + 3)
+
+                robot.last_collected_tick = robot.world.tick
+                robot.memory[1] = -1  # wymuś nowe skanowanie
+
+                print(f"[Tick {robot.world.tick}] COLLECTED {collected} at {pos}")
+                return True
+
+        return False
+
