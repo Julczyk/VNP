@@ -186,7 +186,7 @@ class WorldView(arcade.Window):
             line_height = 18
             font_size = 12
 
-            fixed_lines_count = 5
+            fixed_lines_count = 4
 
             # Storage
             storage_lines_count = 0
@@ -223,9 +223,8 @@ class WorldView(arcade.Window):
             # Basic info
             arcade.draw_text(f"Automaton @ {a.position}", info_x, info_y, arcade.color.WHITE, font_size)
             arcade.draw_text(f"Energy: {a.energy:.1f} / {a.max_energy}", info_x, info_y - line_height, arcade.color.WHITE, font_size)
-            arcade.draw_text(f"Alive: {'Yes' if a.alive else 'No'}", info_x, info_y - 2*line_height, arcade.color.WHITE, font_size)
-            arcade.draw_text(f"Age: {self.world.tick - a.birth_tick}", info_x, info_y - 3*line_height, arcade.color.WHITE, font_size)
-            arcade.draw_text(f"Children count: {a.children_count}", info_x, info_y - 4*line_height, arcade.color.WHITE, font_size)
+            arcade.draw_text(f"Age: {self.world.tick - a.birth_tick}", info_x, info_y - 2*line_height, arcade.color.WHITE, font_size)
+            arcade.draw_text(f"Children count: {a.children_count}", info_x, info_y - 3*line_height, arcade.color.WHITE, font_size)
 
             if storage_parts:
                 storage_start_y = info_y - fixed_lines_count * line_height
