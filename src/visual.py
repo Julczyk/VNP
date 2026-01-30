@@ -36,6 +36,7 @@ class WorldView(arcade.Window):
     def __init__(self, world: World):
         self.world = world
         self.tick = 0
+        self.paused = False
 
         width = world.width * TILE_SIZE + SCREEN_MARGIN * 2
         height = world.height * TILE_SIZE + SCREEN_MARGIN * 2
@@ -123,7 +124,7 @@ class WorldView(arcade.Window):
 
         # ===== HUD =====
         arcade.draw_text(
-            f"Tick: {self.tick}",
+            f"Tick: {self.tick} {'(PAUSED)' if self.paused else ''}",
             10,
             self.height - 25,
             arcade.color.WHITE,
@@ -139,9 +140,14 @@ class WorldView(arcade.Window):
         )
 
     def on_update(self, delta_time: float):
-        if self.tick % 5 == 0:      # <-- REGULUJ TUTAJ predkosc symulacji
-            self.world.update()
-        self.tick += 1
+        if not self.paused:
+            if self.tick % 5 == 0:      # <-- REGULUJ TUTAJ predkosc symulacji
+                self.world.update()
+            self.tick += 1
+
+    def on_key_press(self, symbol, modifiers):
+        if symbol == arcade.key.SPACE:
+            self.paused = not self.paused
 
 
 # =====================
