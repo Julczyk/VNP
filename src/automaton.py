@@ -1,6 +1,7 @@
 from parts import Part, Engine, Scanner, Storage
-from config import FunctionID, ResourceType
+from config import FunctionID, ResourceType, STATS_REPORT_INTERVAL, get_function_to_part_map
 from srapl_interpreter import SRAPLInterpreter as Interpreter
+from stats import stats_manager, AutomatonStats
 
 REPRODUCTION_ENERGY_COST = 10
 
@@ -24,15 +25,23 @@ class Automaton:
 
         self.energy = 100.0  # Startowa energia
 
+        # System statystyk
+        self.stats: AutomatonStats = stats_manager.create_stats(self.birth_tick)
+
     def _assemble_robot(self, genome):
         """Tworzy instancje części na podstawie genomu."""
+        # Pobierz mapowanie funkcji na klasy części
+        func_to_part_cls = get_function_to_part_map()
+
         for part_cls, scale in genome:
             part_instance = part_cls(scale)
             self.parts.append(part_instance)
-            # Rejestracja obsługi f_n
-            fid = part_instance.get_function_id()
-            if fid is not None:
-                self.part_map[fid] = part_instance
+
+            # Znajdź FunctionID dla tej klasy części
+            for func_id, mapped_cls in func_to_part_cls.items():
+                if mapped_cls == part_cls:
+                    self.part_map[func_id] = part_instance
+                    break
 
     def get_total_mass(self):
         """Suma mas części + masy ładunku ze wszystkich magazynów."""
@@ -66,30 +75,61 @@ class Automaton:
         if not self.alive:
             return
 
+        # Rejestruj krok w statystykach
+        self.stats.record_step()
+
+        # Zapamiętaj pozycję przed ruchem (do obliczenia dystansu)
+        old_position = self.position
+
         # 1. Wybór akcji przez program
         func_id, args = self.interpreter.run_step(self)
+
+        # Normalizuj func_id do FunctionID enum
+        if isinstance(func_id, int):
+            try:
+                func_id = FunctionID(func_id)
+            except ValueError:
+                pass  # Nieznane ID - zostaw jako int
 
         # 2. Wykonanie akcji
         actual_fid = func_id.value if hasattr(func_id, 'value') else func_id
 
         if actual_fid != FunctionID.IDLE.value and actual_fid in self.part_map:
             part = self.part_map[actual_fid]
+        if func_id in self.part_map:
+            part = self.part_map[func_id]
             part.execute_action(self, args)
+
+        # Oblicz i zarejestruj przebytą odległość
+        if self.position != old_position:
+            dx = self.position[0] - old_position[0]
+            dy = self.position[1] - old_position[1]
+            distance = (dx**2 + dy**2) ** 0.5
+            self.stats.record_movement(distance)
+
         # 3. Koszty pasywne
         total_passive_drain = sum(p.passive_energy_drain for p in self.parts)
-        self.energy -= total_passive_drain + 1.0
+        passive_cost = total_passive_drain + 1.0
+        self.energy -= passive_cost
+        self.stats.record_energy_consumed(passive_cost)
 
         # 4. IDLE = produkcja energii
-        if func_id == FunctionID.IDLE.value:
+        if func_id == FunctionID.IDLE:
             for part in self.parts:
                 if hasattr(part, "produce_energy"):
+                    energy_before = self.energy
                     part.produce_energy(self)
+                    energy_gained = self.energy - energy_before
+                    if energy_gained > 0:
+                        self.stats.record_energy_produced(energy_gained)
 
         self.share_resources_with_neighbors()
 
         if self.can_reproduce():
             child = self.reproduce()
             if child is not None:
+                # Rejestruj potomka w statystykach
+                self.stats.record_offspring()
                 # rejestracja w świecie – jeśli świat to obsługuje (?)
                 for method_name in ("add_automaton", "spawn_automaton", "register_automaton"):
                     adder = getattr(self.world, method_name, None)
@@ -101,12 +141,17 @@ class Automaton:
             f"[Tick {self.world.tick}] can_reproduce={self.can_reproduce()}"
         )
 
+        # Okresowe raportowanie statystyk
+        if stats_manager.should_report(self.stats, self.world.tick):
+            stats_manager.report(self.stats, self.world.tick, "periodic")
+
         if self.energy <= 0:
             self.die()
 
     def consume_energy(self, amount):
         if self.energy >= amount:
             self.energy -= amount
+            self.stats.record_energy_consumed(amount)
             return True
         return False
     
@@ -267,6 +312,9 @@ class Automaton:
             return
 
         self.alive = False
+
+        # Raportuj statystyki przy śmierci
+        stats_manager.report(self.stats, self.world.tick, "death")
 
         # zasoby z wraku
         wreck_resources = {}

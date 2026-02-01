@@ -230,6 +230,11 @@ class Assembler(Part):
 
         # Dodanie gotowej części
         storage.add_item(part_type, 1)
+
+        # Rejestruj w statystykach
+        if hasattr(robot, 'stats'):
+            robot.stats.record_part_produced(part_type, 1)
+
         return True
 
     def _get_storage(self, robot):
@@ -286,6 +291,9 @@ class Collector(Part):
             if collected:
                 for res, amt in collected.items():
                     storage.contents[res] = storage.contents.get(res, 0) + amt
+                    # Rejestruj w statystykach
+                    if hasattr(robot, 'stats'):
+                        robot.stats.record_resource_collected(res, amt)
 
                 robot.energy = min(robot.max_energy, robot.energy + 3)
 

@@ -74,3 +74,55 @@ RESOURCE_THRESHOLD = {
     ResourceType.COAL: 0.55,
     ResourceType.RAW_ORE: 0.55,
 }
+
+# --------------------------
+# Mapowanie funkcji f_n na klasy części:
+# Importy części są opóźnione (lazy) aby uniknąć cyklicznych zależności
+
+def get_function_to_part_map():
+    """
+    Zwraca mapowanie FunctionID -> klasa części.
+    Lazy import aby uniknąć cyklicznych zależności.
+    """
+    from parts import Engine, Scanner, Storage, Smelter, Assembler, Collector, PowerGenerator
+
+    return {
+        FunctionID.IDLE: PowerGenerator,    # f_0 - odpoczynek/ładowanie
+        FunctionID.MOVE: Engine,            # f_1 - ruch
+        FunctionID.SCAN: Scanner,           # f_2 - skanowanie
+        FunctionID.STORE: Storage,          # f_3 - magazyn
+        FunctionID.SMELT: Smelter,          # f_4 - huta
+        FunctionID.ASSEMBLE: Assembler,     # f_5 - assembler
+        # FunctionID.CHECK_BAT: Battery,    # f_6 - akumulator (niezaimplementowany)
+        FunctionID.COLLECT: Collector,      # f_7 - zbieranie
+    }
+
+
+# Kolejność części w sekcji $PARTS programu SRAPL
+# Indeks w liście = pozycja w $PARTS
+PARTS_ORDER = [
+    FunctionID.MOVE,      # 0 - Engine
+    FunctionID.SCAN,      # 1 - Scanner
+    FunctionID.STORE,     # 2 - Storage
+    FunctionID.COLLECT,   # 3 - Collector
+    FunctionID.SMELT,     # 4 - Smelter
+    FunctionID.ASSEMBLE,  # 5 - Assembler
+    FunctionID.IDLE,      # 6 - PowerGenerator
+]
+
+
+def get_parts_classes_ordered():
+    """
+    Zwraca listę klas części w kolejności zgodnej z $PARTS.
+    """
+    func_to_part = get_function_to_part_map()
+    return [func_to_part[fid] for fid in PARTS_ORDER if fid in func_to_part]
+
+
+# --------------------------
+# System statystyk automatów:
+
+# Interwał raportowania statystyk (w tickach)
+# 0 = raportowanie tylko przy śmierci automatu
+# n > 0 = raportowanie co n kroków + przy śmierci
+STATS_REPORT_INTERVAL = 0
