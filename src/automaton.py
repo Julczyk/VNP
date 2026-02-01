@@ -15,7 +15,7 @@ class Automaton:
 
         # Pamięć i Program
         self.memory = [0.0] * 64
-        self.interpreter = Interpreter(program_code, debug=debug_interpreter)
+        self.interpreter = Interpreter(program_code, debug=True)
 
         # Budowanie robota z genomu (listy par (PartType, Scale))
         self.parts = []
@@ -70,10 +70,11 @@ class Automaton:
         func_id, args = self.interpreter.run_step(self)
 
         # 2. Wykonanie akcji
-        if func_id != FunctionID.IDLE.value and func_id in self.part_map:
-            part = self.part_map[func_id]
-            part.execute_action(self, args)
+        actual_fid = func_id.value if hasattr(func_id, 'value') else func_id
 
+        if actual_fid != FunctionID.IDLE.value and actual_fid in self.part_map:
+            part = self.part_map[actual_fid]
+            part.execute_action(self, args)
         # 3. Koszty pasywne
         total_passive_drain = sum(p.passive_energy_drain for p in self.parts)
         self.energy -= total_passive_drain + 1.0

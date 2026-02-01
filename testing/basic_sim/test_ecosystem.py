@@ -28,13 +28,23 @@ setup_logging(logging.WARNING)
 
 PROGRAM = '''
 $PARTS:
-1.0, 1.5, 2.0, 1.5, 0.0, 0.0, 2.0;
+1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 1.0;
 
 $PROGRAMM
-# Prosty program: skanuj i działaj
-f_2(1.0, 1.0);
-'''
+f_2(1.0, 1.0); # Skanuj
 
+IF (X[1]) {
+    f_1(X[0], 1.0); # Idź do zasobu
+    f_7(1.0);       # Zbierz
+}
+# Jeśli X[1] == 0 (brak zasobów), wykonaj losowy ruch
+IF (1.0 - X[1]) {
+    f_1(2.0, 1.0); # Wykonaj ruch w losowym kierunku (np. ID 2), by szukać dalej
+}
+
+# Jeśli nie ma zasobów LUB robot jest zmęczony:
+f_0();
+'''
 
 def main():
     print("=" * 50)

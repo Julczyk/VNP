@@ -23,7 +23,7 @@ from config import FunctionID
 
 # --- Konfiguracja logowania ---
 logger = logging.getLogger('SRAPL')
-
+logging.basicConfig(filename='srapl.log', level=logging.DEBUG)
 
 # --- Wyjątki sterujące przepływem (sygnały, nie błędy) ---
 
@@ -297,8 +297,9 @@ class SRAPLInterpreter:
             func_id, args = next(self.generator)
             if self.debug:
                 logger.info(f"Step result: {func_id}, args={args}")
-            return func_id, args
 
+                print(f"Step result: {func_id}, args={args}")
+            return func_id, args
         except StopIteration:
             # Program się skończył (nie powinno się zdarzyć z nieskończoną pętlą)
             if self.debug:
