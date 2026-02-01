@@ -1,11 +1,11 @@
 from parts import Part, Engine, Scanner, Storage
 from config import FunctionID, ResourceType
-from interpreter import Interpreter
+from srapl_interpreter import SRAPLInterpreter as Interpreter
 
 REPRODUCTION_ENERGY_COST = 10
 
 class Automaton:
-    def __init__(self, program_code, parts_genome, world, position):
+    def __init__(self, program_code, parts_genome, world, position, debug_interpreter=False):
         self.world = world
         self.position = position
         self.alive = True
@@ -15,7 +15,7 @@ class Automaton:
 
         # Pamięć i Program
         self.memory = [0.0] * 64
-        self.interpreter = Interpreter(program_code)
+        self.interpreter = Interpreter(program_code, debug=debug_interpreter)
 
         # Budowanie robota z genomu (listy par (PartType, Scale))
         self.parts = []

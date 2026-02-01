@@ -156,13 +156,36 @@ if __name__ == "__main__":
         Collector, PowerGenerator
     )
     from config import FunctionID, ResourceType
+    from srapl_interpreter import setup_logging
+    import logging
 
-    program = [
-        (FunctionID.SCAN.value, []),
-        (FunctionID.MOVE.value, ["MEM0", "MEM1"]),  # idź aż do celu
-        (FunctionID.COLLECT.value, [5]),
-        (FunctionID.IDLE.value, []),
-    ]
+    # Włącz logowanie interpretera (opcjonalne - zakomentuj dla cichej pracy)
+    # setup_logging(logging.DEBUG)
+
+    # Program SRAPL - skanuj, idź do zasobu, zbieraj, odpoczywaj
+    srapl_program = '''
+$PARTS:
+1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0;
+
+$PROGRAMM
+# Główna pętla automatu: skanuj -> jedź -> zbieraj -> odpoczywaj
+
+# Skanuj otoczenie w poszukiwaniu zasobów
+f_2(1.0, 1.0);
+'''
+
+    # Alternatywny, bardziej zaawansowany program
+    srapl_program_advanced = '''
+$PARTS:
+1.0, 1.0, 2.0, 1.0, 0.5, 0.5, 1.5;
+
+$PROGRAMM
+# X[0] = kierunek do zasobu (z skanera)
+# X[1] = odległość do zasobu (z skanera)
+
+# Krok 1: Skanuj
+f_2(1.0, 1.0);
+'''
 
     genome = [
         (Engine, 1.0),
@@ -176,11 +199,13 @@ if __name__ == "__main__":
 
     world = World(80, 80, seed=42)
 
+    # Włącz debug_interpreter=True dla szczegółowych logów interpretera
     automaton = Automaton(
-        program_code=program,
+        program_code=srapl_program,
         parts_genome=genome,
         world=world,
-        position=(15, 15)
+        position=(15, 15),
+        debug_interpreter=False
     )
 
     world.add_automaton(automaton)
