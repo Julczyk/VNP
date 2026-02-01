@@ -1,0 +1,6 @@
+$PARTS:
+2.0, 1.5, 1.0, 1.0, 0.0, 0.0, 1.5;
+
+$PROGRAMM
+# EXPLORER - szybki ruch, duży silnik
+f_2(1.0, 1.0);

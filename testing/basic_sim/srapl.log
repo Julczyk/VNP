@@ -1,0 +1,5 @@
+INFO:SRAPL:Interpreter initialized, code length: 411 chars
+INFO:SRAPL:Created new execution generator
+INFO:SRAPL:Step result: FunctionID.SCAN, args=[1.0, 1.0]
+INFO:SRAPL:Step result: FunctionID.SCAN, args=[1.0, 1.0]
+INFO:SRAPL:Step result: FunctionID.SCAN, args=[1.0, 1.0]
