@@ -13,6 +13,7 @@ class Automaton:
         self.parts_genome = parts_genome
         self.max_energy = 300.0
         self.birth_tick = world.tick
+        self.children_count = 0
 
         # Pamięć i Program
         self.memory = [0.0] * 64
@@ -303,6 +304,8 @@ class Automaton:
             world=self.world,
             position=spawn_pos
         )
+
+        self.children_count += 1
 
         return child
 
