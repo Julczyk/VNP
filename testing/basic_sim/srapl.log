@@ -3,3 +3,73 @@ INFO:SRAPL:Created new execution generator
 INFO:SRAPL:Step result: FunctionID.SCAN, args=[1.0, 1.0]
 INFO:SRAPL:Step result: FunctionID.SCAN, args=[1.0, 1.0]
 INFO:SRAPL:Step result: FunctionID.SCAN, args=[1.0, 1.0]
+INFO:STATS:=== STATS REPORT (death) ===
+Automaton ID: 3
+Lifetime: 50 ticks (born: 0)
+Steps executed: 51
+Distance traveled: 19.0
+Offspring: 6
+Energy: produced=100.0, consumed=227.42, balance=-127.42
+Resources collected: 9 total
+  - RAW_ORE: 9
+Parts produced: 0 total
+==============================
+INFO:STATS:=== STATS REPORT (death) ===
+Automaton ID: 6
+Lifetime: 84 ticks (born: 25)
+Steps executed: 84
+Distance traveled: 30.0
+Offspring: 4
+Energy: produced=170.0, consumed=315.73, balance=-145.73
+Resources collected: 14.144444444444444 total
+  - RAW_ORE: 10.144444444444444
+  - PROCESSED_METAL: 4
+Parts produced: 0 total
+==============================
+INFO:STATS:=== STATS REPORT (death) ===
+Automaton ID: 7
+Lifetime: 93 ticks (born: 35)
+Steps executed: 93
+Distance traveled: 34.0
+Offspring: 3
+Energy: produced=190.0, consumed=341.58, balance=-151.58
+Resources collected: 17 total
+  - RAW_ORE: 9
+  - PROCESSED_METAL: 8
+Parts produced: 0 total
+==============================
+INFO:STATS:=== STATS REPORT (death) ===
+Automaton ID: 4
+Lifetime: 134 ticks (born: 0)
+Steps executed: 135
+Distance traveled: 47.0
+Offspring: 7
+Energy: produced=350.0, consumed=492.64, balance=-142.64
+Resources collected: 14 total
+  - RAW_ORE: 14
+Parts produced: 0 total
+==============================
+INFO:STATS:=== STATS REPORT (death) ===
+Automaton ID: 8
+Lifetime: 95 ticks (born: 40)
+Steps executed: 95
+Distance traveled: 37.0
+Offspring: 1
+Energy: produced=190.0, consumed=341.23, balance=-151.23
+Resources collected: 17 total
+  - RAW_ORE: 8
+  - PROCESSED_METAL: 9
+Parts produced: 0 total
+==============================
+INFO:STATS:=== STATS REPORT (death) ===
+Automaton ID: 15
+Lifetime: 54 ticks (born: 90)
+Steps executed: 54
+Distance traveled: 22.0
+Offspring: 4
+Energy: produced=100.0, consumed=233.37, balance=-133.37
+Resources collected: 10.764471151423532 total
+  - RAW_ORE: 5.764471151423533
+  - PROCESSED_METAL: 5
+Parts produced: 0 total
+==============================
