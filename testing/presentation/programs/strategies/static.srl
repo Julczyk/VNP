@@ -12,9 +12,12 @@ $PROGRAMM
 # 4. Maly silnik (0.5), duzy magazyn (3.0)
 #
 # Pamiec:
-#   X[0] = kierunek (wynik skanera)
-#   X[1] = odleglosc (wynik skanera)
+#   X[0] = energia (0.0-1.0)
+#   X[1] = kierunek (wynik skanera)
+#   X[2] = dystans (wynik skanera)
 #   X[30] = licznik zbieran (odpoczywaj co 5)
+#
+# Idle loop: zapobiegamy przez losowy ruch gdy brak zasobow
 # ==============================================
 
 X[30] = 0.0;
@@ -25,7 +28,7 @@ X[30] = 0.0;
     f_2(1.0, 1.0);
 
     # Jesli zasob blisko (<=2) - zbieraj
-    IF (2.0 - X[1]) {
+    IF (2.0 - X[2]) {
         X[30] = X[30] + 1.0;
 
         # Co 5 zbieran odpoczywaj
@@ -39,12 +42,12 @@ X[30] = 0.0;
     }
 
     # Jesli zasob daleko - idz powoli
-    IF (X[1] - 2.0) {
-        f_1(X[0], 1.0);
+    IF (X[2] - 2.0) {
+        f_1(X[1], 1.0);
     }
 
     # Jesli nie znaleziono - maly losowy ruch
-    IF (0.0 - X[1]) {
+    IF (0.0 - X[2]) {
         f_1(0.0, 1.0);
     }
 

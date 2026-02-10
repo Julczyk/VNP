@@ -12,8 +12,11 @@ $PROGRAMM
 # 4. Powtorz
 #
 # Pamiec:
-#   X[0] = kierunek (wynik skanera)
-#   X[1] = odleglosc (wynik skanera)
+#   X[0] = energia (0.0-1.0)
+#   X[1] = kierunek (wynik skanera)
+#   X[2] = dystans (wynik skanera)
+#
+# Idle loop: zapobiegamy przez losowy ruch gdy brak zasobow
 # ==============================================
 
 # Glowna petla
@@ -22,18 +25,18 @@ $PROGRAMM
     f_2(1.0, 1.0);
 
     # Krok 2: Sprawdz odleglosc
-    # Jesli X[1] <= 1 (bezposredni sasiad) - zbieraj
-    IF (1.5 - X[1]) {
+    # Jesli X[2] <= 1 (bezposredni sasiad) - zbieraj
+    IF (1.5 - X[2]) {
         f_7(1.0);
     }
 
-    # Jesli daleko (X[1] > 1) - idz w kierunku zasobu
-    IF (X[1] - 1.5) {
-        f_1(X[0], 1.0);
+    # Jesli daleko (X[2] > 1) - idz w kierunku zasobu
+    IF (X[2] - 1.5) {
+        f_1(X[1], 1.0);
     }
 
-    # Jesli nie znaleziono (X[1] < 0) - losowy ruch
-    IF (0.0 - X[1]) {
+    # Jesli nie znaleziono (X[2] < 0) - losowy ruch
+    IF (0.0 - X[2]) {
         f_1(0.0, 1.0);
     }
 

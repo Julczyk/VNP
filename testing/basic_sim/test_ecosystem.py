@@ -34,7 +34,7 @@ $PROGRAMM
 f_2(1.0, 1.0); # Skanuj
 
 IF (X[1]) {
-    f_1(X[0], 1.0); # Idź do zasobu
+    f_1(X[2], 1.0); # Idź do zasobu
     f_7(1.0);       # Zbierz
 }
 # Jeśli X[1] == 0 (brak zasobów), wykonaj losowy ruch

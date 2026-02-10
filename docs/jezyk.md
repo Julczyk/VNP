@@ -9,6 +9,12 @@ Właściwy program rozpoczyna się znacznikiem $PROGRAMM
 ## Pamięć automatu
 Na potrzeby symulacji pamięć każdego automatu (niezależnie od budowy) stanowi lista/tablica stałego rozmiaru przechowująca zmienne float. Każda część ma zdefiniowaną przestrzeń do której może zapisywać zmienne - część ta nie podlega ewolucji w celu zrozumienia procesu.
 
+### Zarezerwowane indeksy pamięci
+- **X[0]** - energia automatu (0.0 - 1.0, proporcja do maksymalnej energii)
+- **X[1]** - kierunek do najbliższego zasobu (wynik skanera, 0-3 lub -1 jeśli nie znaleziono)
+- **X[2]** - dystans do najbliższego zasobu (wynik skanera, lub -1 jeśli nie znaleziono)
+- **X[3-63]** - dostępne dla programu użytkownika
+
 ## Schemat działania:
 1. Automat w każdym kroku uruchamia lub kontynuuje swój program. Program ma do dyspozycji pamięć automatu i za pomocą wyrażeń może go dowolnie modyfikować.
 2. Program na podstawie instrukcji warunkowych lub priorytetu (liczby przypisanej do części) wybiera jedną z części do uruchomienia
@@ -72,31 +78,40 @@ operatory w wyrażeniach: +, -, *, /, **
 
 ## przykładowy program
 ```
-$PARTS
-1.0,
-3.0,
-5.3,
-0.7,
-0.0,
-0.0,
-1.8
-
+$PARTS:
+1.0, 1.0, 2.0, 1.0, 0.5, 0.5, 1.5;
 
 $PROGRAMM
-# X[0] - energia, X[1] - odległość do przeszkody
-IF (X[0] - 10.0) {
-    # Mamy energię > 10
-    IF (5.0 - X[1]) {
-        # Przeszkoda bliżej niż 5 jednostek -> Skręt
-        f_2(90.0);
-    }
-    # Brak przeszkody -> Naprzód
-    f_1(1.0);
-}
+# Konwencja pamieci:
+#   X[0] = energia (0.0-1.0)
+#   X[1] = kierunek do zasobu (wynik skanera)
+#   X[2] = dystans do zasobu (wynik skanera)
 
-# X[2] = X[0] * 2.7 - (X[1] / 4.8);
-# f_4(1.3, X[0]+4.7);
-# Jeśli tu dotarliśmy, energii jest mało (< 10)
-X[5] = X[0] * 1.1; # Zapisz statystykę do pamięci (opcjonalne)
-f_0(); # Stan spoczynku / ładowania
+# Glowna petla
+{
+    # Jesli energia < 30% - odpoczywaj
+    IF (0.3 - X[0]) {
+        f_0();
+    }
+
+    # Skanuj otoczenie (zapisuje do X[1] i X[2])
+    f_2(1.0, 1.0);
+
+    # Jesli zasob blisko (dystans <= 1) - zbieraj
+    IF (1.5 - X[2]) {
+        f_7(1.0);
+    }
+
+    # Jesli zasob daleko - idz w kierunku
+    IF (X[2] - 1.5) {
+        f_1(X[1], 1.0);
+    }
+
+    # Jesli nie znaleziono (dystans < 0) - losowy ruch
+    IF (0.0 - X[2]) {
+        f_1(0.0, 1.0);
+    }
+
+    REDO;
+}
 ```

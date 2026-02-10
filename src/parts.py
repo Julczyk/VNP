@@ -76,12 +76,12 @@ class Scanner(Part):
 
         if robot.consume_energy(self.active_energy_cost):
             result = robot.world.scan_area(robot.position, radius, target_res)
-            # Zapisz wynik do pamięci (np. kierunek i odległość)
-            # Konwencja: X[0] = dir, X[1] = dist
-            robot.memory[0] = result['dir']
-            robot.memory[1] = result['dist']
+            # Zapisz wynik do pamięci
+            # Konwencja: X[0] = energia, X[1] = kierunek, X[2] = dystans
+            robot.memory[1] = result['dir']
+            robot.memory[2] = result['dist']
             if result['dir'] < 0:
-                robot.memory[1] = -1  # wymuś losowy krok w Engine
+                robot.memory[2] = -1  # wymuś losowy krok w Engine
 
 class Storage(Part):
     def __init__(self, scale):
@@ -298,7 +298,7 @@ class Collector(Part):
                 robot.energy = min(robot.max_energy, robot.energy + 3)
 
                 robot.last_collected_tick = robot.world.tick
-                robot.memory[1] = -1  # wymuś nowe skanowanie
+                robot.memory[2] = -1  # wymuś nowe skanowanie (dystans = -1)
 
                 print(f"[Tick {robot.world.tick}] COLLECTED {collected} at {pos}")
                 return True

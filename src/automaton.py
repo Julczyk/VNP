@@ -146,6 +146,8 @@ class Automaton:
         if stats_manager.should_report(self.stats, self.world.tick):
             stats_manager.report(self.stats, self.world.tick, "periodic")
 
+        self.memory[0] = self.energy / self.max_energy
+
         if self.energy <= 0:
             self.die()
 

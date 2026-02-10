@@ -2,7 +2,7 @@
   "program": "static",
   "world_seed": 42,
   "world_size": "(80, 80)",
-  "start_position": "(15, 15)",
+  "start_position": "(40, 40)",
   "max_ticks": 10000,
   "final_tick": 37,
   "automaton_died": true,
@@ -10,7 +10,7 @@
   "total_automata": 0,
   "final_automata_count": 0,
   "stats": null,
-  "simulation_duration_seconds": 0.027859,
+  "simulation_duration_seconds": 0.02171,
   "stats_summary": {
     "total_automata_died": 1,
     "avg_lifetime": 37.0,
