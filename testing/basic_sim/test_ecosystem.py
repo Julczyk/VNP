@@ -28,7 +28,7 @@ setup_logging(logging.WARNING)
 
 PROGRAM = '''
 $PARTS:
-1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 1.0;
+1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0;
 
 $PROGRAMM
 f_2(1.0, 1.0); # Skanuj

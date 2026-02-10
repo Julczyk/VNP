@@ -1,59 +1,12 @@
-2026-02-10 21:37:16,266 [INFO] Start symulacji, max_ticks=10000
-2026-02-10 21:37:16,266 [INFO] Tick 0: 1 automatow zyje
-2026-02-10 21:37:16,344 [INFO] Wszystkie automaty zginely w ticku 87
-2026-02-10 21:37:16,344 [INFO] === Symulacja zakonczona ===
-2026-02-10 21:37:16,344 [INFO] Tick koncowy: 87
-2026-02-10 21:37:16,345 [INFO] Automaty na koncu: 0
-2026-02-10 21:37:16,345 [INFO] Czas trwania: 0.08s
-2026-02-10 21:37:16,345 [INFO] Podsumowanie statystyk: {'total_automata_died': 4, 'avg_lifetime': 26.0, 'avg_steps': 26.25, 'avg_distance': 7.25, 'avg_offspring': 0.75, 'avg_resources': 8.25, 'total_offspring': 3, 'total_resources': 33}
-2026-02-10 21:37:16,345 [INFO] Wyniki zapisane do: /home/julczyk/Dokumenty/Automaty/VNP/testing/presentation/results/strategies/traveler_results.json
-2026-02-10 21:37:16,345 [INFO] 
-============================================================
-2026-02-10 21:37:16,346 [INFO] Testowanie strategii: static
-2026-02-10 21:37:16,346 [INFO] ============================================================
-2026-02-10 21:37:16,346 [INFO] === Uruchamianie symulacji: static ===
-2026-02-10 21:37:16,347 [INFO] Genom: [('Engine', 0.5), ('Scanner', 1.5), ('Storage', 3.0), ('Collector', 2.0), ('Smelter', 0.5), ('Assembler', 0.5), ('PowerGenerator', 2.0)]
-2026-02-10 21:37:17,435 [INFO] Swiat: 80x80, seed=42
-2026-02-10 21:37:17,442 [INFO] Start symulacji, max_ticks=10000
-2026-02-10 21:37:17,443 [INFO] Tick 0: 1 automatow zyje
-2026-02-10 21:37:17,464 [INFO] Wszystkie automaty zginely w ticku 37
-2026-02-10 21:37:17,464 [INFO] === Symulacja zakonczona ===
-2026-02-10 21:37:17,464 [INFO] Tick koncowy: 37
-2026-02-10 21:37:17,464 [INFO] Automaty na koncu: 0
-2026-02-10 21:37:17,464 [INFO] Czas trwania: 0.02s
-2026-02-10 21:37:17,464 [INFO] Podsumowanie statystyk: {'total_automata_died': 1, 'avg_lifetime': 37.0, 'avg_steps': 38.0, 'avg_distance': 1.0, 'avg_offspring': 0.0, 'avg_resources': 0.0, 'total_offspring': 0, 'total_resources': 0}
-2026-02-10 21:37:17,465 [INFO] Wyniki zapisane do: /home/julczyk/Dokumenty/Automaty/VNP/testing/presentation/results/strategies/static_results.json
-2026-02-10 21:37:17,465 [INFO] 
-============================================================
-2026-02-10 21:37:17,465 [INFO] Testowanie strategii: safe
-2026-02-10 21:37:17,465 [INFO] ============================================================
-2026-02-10 21:37:17,465 [INFO] === Uruchamianie symulacji: safe ===
-2026-02-10 21:37:17,466 [INFO] Genom: [('Engine', 1.0), ('Scanner', 1.0), ('Storage', 2.0), ('Collector', 1.0), ('Smelter', 0.5), ('Assembler', 0.5), ('PowerGenerator', 2.5)]
-2026-02-10 21:37:18,835 [INFO] Swiat: 80x80, seed=42
-2026-02-10 21:37:18,852 [INFO] Start symulacji, max_ticks=10000
-2026-02-10 21:37:18,853 [INFO] Tick 0: 1 automatow zyje
-2026-02-10 21:37:19,642 [INFO] Zapisano obraz: /home/julczyk/Dokumenty/Automaty/VNP/testing/presentation/results/strategies/safe_tick100.png
-2026-02-10 21:37:21,381 [INFO] Zapisano obraz: /home/julczyk/Dokumenty/Automaty/VNP/testing/presentation/results/strategies/safe_tick1000.png
-2026-02-10 21:37:21,383 [INFO] Tick 1000: 1 automatow zyje
-2026-02-10 21:37:22,514 [INFO] Tick 2000: 1 automatow zyje
-2026-02-10 21:37:23,436 [INFO] Tick 3000: 1 automatow zyje
-2026-02-10 21:37:24,303 [INFO] Tick 4000: 1 automatow zyje
-2026-02-10 21:37:25,226 [INFO] Tick 5000: 1 automatow zyje
-2026-02-10 21:37:26,000 [INFO] Tick 6000: 1 automatow zyje
-2026-02-10 21:37:26,753 [INFO] Tick 7000: 1 automatow zyje
-2026-02-10 21:37:27,481 [INFO] Tick 8000: 1 automatow zyje
-2026-02-10 21:37:28,205 [INFO] Tick 9000: 1 automatow zyje
-2026-02-10 21:37:29,274 [INFO] Zapisano obraz: /home/julczyk/Dokumenty/Automaty/VNP/testing/presentation/results/strategies/safe_tick10000.png
-2026-02-10 21:37:29,275 [INFO] === Symulacja zakonczona ===
-2026-02-10 21:37:29,275 [INFO] Tick koncowy: 10000
-2026-02-10 21:37:29,275 [INFO] Automaty na koncu: 1
-2026-02-10 21:37:29,275 [INFO] Czas trwania: 10.42s
-2026-02-10 21:37:29,275 [INFO] Wyniki zapisane do: /home/julczyk/Dokumenty/Automaty/VNP/testing/presentation/results/strategies/safe_results.json
-2026-02-10 21:37:29,275 [INFO] 
-============================================================
-2026-02-10 21:37:29,275 [INFO] PODSUMOWANIE STRATEGII
-2026-02-10 21:37:29,276 [INFO] ============================================================
-2026-02-10 21:37:29,276 [INFO] standard: tick=250, automata=0
-2026-02-10 21:37:29,276 [INFO] traveler: tick=87, automata=0
-2026-02-10 21:37:29,276 [INFO] static: tick=37, automata=0
-2026-02-10 21:37:29,276 [INFO] safe: tick=10000, automata=1
+2026-02-11 00:06:32,810 [INFO] Start symulacji, max_ticks=300
+2026-02-11 00:06:32,821 [INFO] Tick 0: 25 automatow zyje
+2026-02-11 00:06:33,154 [INFO] Zapisano obraz: /home/julczyk/Dokumenty/Automaty/VNP/testing/presentation/results/strategies/traveler_tick1.png
+2026-02-11 00:06:34,336 [INFO] Zapisano obraz: /home/julczyk/Dokumenty/Automaty/VNP/testing/presentation/results/strategies/traveler_tick50.png
+2026-02-11 00:06:35,385 [INFO] Zapisano obraz: /home/julczyk/Dokumenty/Automaty/VNP/testing/presentation/results/strategies/traveler_tick150.png
+2026-02-11 00:06:35,596 [INFO] Wszystkie automaty zginely w ticku 225
+2026-02-11 00:06:35,596 [INFO] === Symulacja zakonczona ===
+2026-02-11 00:06:35,596 [INFO] Tick koncowy: 225
+2026-02-11 00:06:35,596 [INFO] Automaty na koncu: 0
+2026-02-11 00:06:35,596 [INFO] Czas trwania: 2.79s
+2026-02-11 00:06:35,596 [INFO] Podsumowanie statystyk: {'total_automata_died': 80, 'avg_lifetime': 26.75, 'avg_steps': 27.0625, 'avg_distance': 4.6625, 'avg_offspring': 0.6875, 'avg_resources': 7.996483100153365, 'total_offspring': 55, 'total_resources': 639.7186480122692}
+2026-02-11 00:06:35,682 [INFO] Wyniki zapisane do: /home/julczyk/Dokumenty/Automaty/VNP/testing/presentation/results/strategies/traveler_results.json

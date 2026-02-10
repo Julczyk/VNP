@@ -1,27 +1,11 @@
-2026-02-10 21:37:18,852 [INFO] Start symulacji, max_ticks=10000
-2026-02-10 21:37:18,853 [INFO] Tick 0: 1 automatow zyje
-2026-02-10 21:37:19,642 [INFO] Zapisano obraz: /home/julczyk/Dokumenty/Automaty/VNP/testing/presentation/results/strategies/safe_tick100.png
-2026-02-10 21:37:21,381 [INFO] Zapisano obraz: /home/julczyk/Dokumenty/Automaty/VNP/testing/presentation/results/strategies/safe_tick1000.png
-2026-02-10 21:37:21,383 [INFO] Tick 1000: 1 automatow zyje
-2026-02-10 21:37:22,514 [INFO] Tick 2000: 1 automatow zyje
-2026-02-10 21:37:23,436 [INFO] Tick 3000: 1 automatow zyje
-2026-02-10 21:37:24,303 [INFO] Tick 4000: 1 automatow zyje
-2026-02-10 21:37:25,226 [INFO] Tick 5000: 1 automatow zyje
-2026-02-10 21:37:26,000 [INFO] Tick 6000: 1 automatow zyje
-2026-02-10 21:37:26,753 [INFO] Tick 7000: 1 automatow zyje
-2026-02-10 21:37:27,481 [INFO] Tick 8000: 1 automatow zyje
-2026-02-10 21:37:28,205 [INFO] Tick 9000: 1 automatow zyje
-2026-02-10 21:37:29,274 [INFO] Zapisano obraz: /home/julczyk/Dokumenty/Automaty/VNP/testing/presentation/results/strategies/safe_tick10000.png
-2026-02-10 21:37:29,275 [INFO] === Symulacja zakonczona ===
-2026-02-10 21:37:29,275 [INFO] Tick koncowy: 10000
-2026-02-10 21:37:29,275 [INFO] Automaty na koncu: 1
-2026-02-10 21:37:29,275 [INFO] Czas trwania: 10.42s
-2026-02-10 21:37:29,275 [INFO] Wyniki zapisane do: /home/julczyk/Dokumenty/Automaty/VNP/testing/presentation/results/strategies/safe_results.json
-2026-02-10 21:37:29,275 [INFO] 
-============================================================
-2026-02-10 21:37:29,275 [INFO] PODSUMOWANIE STRATEGII
-2026-02-10 21:37:29,276 [INFO] ============================================================
-2026-02-10 21:37:29,276 [INFO] standard: tick=250, automata=0
-2026-02-10 21:37:29,276 [INFO] traveler: tick=87, automata=0
-2026-02-10 21:37:29,276 [INFO] static: tick=37, automata=0
-2026-02-10 21:37:29,276 [INFO] safe: tick=10000, automata=1
+2026-02-11 00:06:47,155 [INFO] Start symulacji, max_ticks=300
+2026-02-11 00:06:47,167 [INFO] Tick 0: 25 automatow zyje
+2026-02-11 00:06:47,501 [INFO] Zapisano obraz: /home/julczyk/Dokumenty/Automaty/VNP/testing/presentation/results/strategies/safe_tick1.png
+2026-02-11 00:06:50,840 [INFO] Zapisano obraz: /home/julczyk/Dokumenty/Automaty/VNP/testing/presentation/results/strategies/safe_tick50.png
+2026-02-11 00:07:11,027 [INFO] Zapisano obraz: /home/julczyk/Dokumenty/Automaty/VNP/testing/presentation/results/strategies/safe_tick150.png
+2026-02-11 00:07:47,318 [INFO] Zapisano obraz: /home/julczyk/Dokumenty/Automaty/VNP/testing/presentation/results/strategies/safe_tick300.png
+2026-02-11 00:07:47,319 [INFO] === Symulacja zakonczona ===
+2026-02-11 00:07:47,319 [INFO] Tick koncowy: 300
+2026-02-11 00:07:47,319 [INFO] Automaty na koncu: 162
+2026-02-11 00:07:47,319 [INFO] Czas trwania: 60.16s
+2026-02-11 00:07:47,328 [INFO] Wyniki zapisane do: /home/julczyk/Dokumenty/Automaty/VNP/testing/presentation/results/strategies/safe_results.json

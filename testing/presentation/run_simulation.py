@@ -3,7 +3,7 @@
 Skrypt do uruchamiania symulacji z programem SRAPL.
 
 Uruchamia symulacje, zbiera statystyki i zapisuje wyniki.
-Moze zapisywac obrazy w 100., 1000. i 10000. kroku.
+Moze zapisywac obrazy
 """
 
 import sys
@@ -189,7 +189,13 @@ def run_simulation(
         logger.addHandler(file_handler)
 
     # Lista tickow do zapisania obrazow
-    image_ticks = [100, 1000, 10000] if save_images else []
+    if save_images:
+        if isinstance(save_images, list):
+            image_ticks = save_images
+        else:
+            image_ticks = [100, 1000, 10000]
+    else:
+        image_ticks = []
 
     # Uruchom symulacje
     logger.info(f"Start symulacji, max_ticks={max_ticks}")
@@ -280,7 +286,7 @@ def run_simulation(
         config.RESOURCE_THRESHOLD = original_thresholds
 
     # Pokaz wizualizacje jesli requested
-    if show_visualization and len(world.automata) > 0:
+    if show_visualization:
         logger.info("Uruchamianie wizualizacji...")
         show_world_visualization(world)
 
@@ -289,7 +295,7 @@ def run_simulation(
 
 def run_mixed_simulation(
     programs: list,
-    max_ticks: int = 10000,
+    max_ticks: int = 300,
     world_seed: int = 42,
     world_size: tuple = (80, 80),
     start_position: tuple = (40, 40),
@@ -538,17 +544,15 @@ def save_world_image(world, filepath):
 
 def show_world_visualization(world):
     """Pokazuje wizualizacje swiata z arcade."""
-    try:
-        import arcade
-        from visual import WorldView
+    import arcade
+    from visual import WorldView
 
-        window = WorldView(world)
-        arcade.run()
-    except ImportError as e:
-        logger.warning(f"Nie mozna uruchomic wizualizacji: {e}")
+    logger.info(f"Uruchamianie okna wizualizacji (automaty: {len(world.automata)})")
+    window = WorldView(world)
+    arcade.run()
 
 
-def run_strategy_tests(output_base: str = None, num_automata: int = 25):
+def run_strategy_tests(output_base: str = None, num_automata: int = 25, max_ticks: int = 300):
     """Uruchamia testy wszystkich strategii z wieloma automatami."""
     strategies_dir = Path(__file__).parent / 'programs' / 'strategies'
 
@@ -560,6 +564,9 @@ def run_strategy_tests(output_base: str = None, num_automata: int = 25):
     strategies = list(strategies_dir.glob('*.srl'))
     logger.info(f"Znaleziono {len(strategies)} strategii do przetestowania")
 
+    # Obrazy w tickach 1, 50, 150, 300
+    image_ticks = [1, 50, 150, 300]
+
     all_results = []
     for strategy_file in strategies:
         logger.info(f"\n{'='*60}")
@@ -568,11 +575,11 @@ def run_strategy_tests(output_base: str = None, num_automata: int = 25):
 
         result = run_simulation(
             program_path=str(strategy_file),
-            max_ticks=10000,
+            max_ticks=max_ticks,
             world_seed=42,
             num_automata=num_automata,
             output_dir=str(output_base),
-            save_images=True,
+            save_images=image_ticks,
             show_visualization=False
         )
         all_results.append(result)
