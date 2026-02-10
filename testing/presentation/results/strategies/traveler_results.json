@@ -1,0 +1,122 @@
+{
+  "program": "traveler",
+  "world_seed": 42,
+  "world_size": "(80, 80)",
+  "start_position": "(15, 15)",
+  "max_ticks": 10000,
+  "final_tick": 111,
+  "automaton_died": true,
+  "death_tick": 111,
+  "total_automata": 0,
+  "final_automata_count": 0,
+  "stats": null,
+  "simulation_duration_seconds": 1.647633,
+  "stats_summary": {
+    "total_automata_died": 5,
+    "avg_lifetime": 27.8,
+    "avg_steps": 28.0,
+    "avg_distance": 5.0,
+    "avg_offspring": 0.8,
+    "avg_resources": 9.0,
+    "total_offspring": 4,
+    "total_resources": 45
+  },
+  "all_reports": [
+    {
+      "automaton_id": 1,
+      "birth_tick": 0,
+      "lifetime": 30,
+      "steps_executed": 31,
+      "distance_traveled": 7.0,
+      "offspring_count": 1,
+      "energy_produced": 0.0,
+      "energy_consumed": 130.08,
+      "energy_balance": -130.08,
+      "total_resources_collected": 10,
+      "resources_collected": {
+        "RAW_ORE": 10
+      },
+      "total_parts_produced": 0,
+      "parts_produced": {},
+      "reason": "death",
+      "report_tick": 30
+    },
+    {
+      "automaton_id": 2,
+      "birth_tick": 20,
+      "lifetime": 28,
+      "steps_executed": 28,
+      "distance_traveled": 7.0,
+      "offspring_count": 1,
+      "energy_produced": 0.0,
+      "energy_consumed": 127.14,
+      "energy_balance": -127.14,
+      "total_resources_collected": 9,
+      "resources_collected": {
+        "RAW_ORE": 9
+      },
+      "total_parts_produced": 0,
+      "parts_produced": {},
+      "reason": "death",
+      "report_tick": 48
+    },
+    {
+      "automaton_id": 3,
+      "birth_tick": 40,
+      "lifetime": 25,
+      "steps_executed": 25,
+      "distance_traveled": 7.0,
+      "offspring_count": 1,
+      "energy_produced": 0.0,
+      "energy_consumed": 124.3,
+      "energy_balance": -124.3,
+      "total_resources_collected": 8,
+      "resources_collected": {
+        "RAW_ORE": 8
+      },
+      "total_parts_produced": 0,
+      "parts_produced": {},
+      "reason": "death",
+      "report_tick": 65
+    },
+    {
+      "automaton_id": 4,
+      "birth_tick": 60,
+      "lifetime": 25,
+      "steps_executed": 25,
+      "distance_traveled": 4.0,
+      "offspring_count": 1,
+      "energy_produced": 0.0,
+      "energy_consumed": 124.3,
+      "energy_balance": -124.3,
+      "total_resources_collected": 8,
+      "resources_collected": {
+        "RAW_ORE": 8
+      },
+      "total_parts_produced": 0,
+      "parts_produced": {},
+      "reason": "death",
+      "report_tick": 85
+    },
+    {
+      "automaton_id": 5,
+      "birth_tick": 80,
+      "lifetime": 31,
+      "steps_executed": 31,
+      "distance_traveled": 0.0,
+      "offspring_count": 0,
+      "energy_produced": 0.0,
+      "energy_consumed": 130.18,
+      "energy_balance": -130.18,
+      "total_resources_collected": 10,
+      "resources_collected": {
+        "IRON": 8,
+        "RAW_ORE": 2
+      },
+      "total_parts_produced": 0,
+      "parts_produced": {},
+      "reason": "death",
+      "report_tick": 111
+    }
+  ]
+}

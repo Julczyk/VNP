@@ -73,3 +73,11 @@ Resources collected: 10.764471151423532 total
   - PROCESSED_METAL: 5
 Parts produced: 0 total
 ==============================
+INFO:SRAPL:Interpreter initialized, code length: 404 chars
+INFO:SRAPL:Created new execution generator
+INFO:SRAPL:Step result: FunctionID.SCAN, args=[1.0, 1.0]
+INFO:SRAPL:Step result: FunctionID.SCAN, args=[1.0, 1.0]
+INFO:SRAPL:Step result: FunctionID.SCAN, args=[1.0, 1.0]
+INFO:SRAPL:Step result: FunctionID.SCAN, args=[1.0, 1.0]
+INFO:SRAPL:Step result: FunctionID.SCAN, args=[1.0, 1.0]
+INFO:SRAPL:Step result: FunctionID.SCAN, args=[1.0, 1.0]

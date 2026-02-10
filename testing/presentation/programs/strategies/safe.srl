@@ -1,0 +1,58 @@
+$PARTS:
+1.0, 1.0, 2.0, 1.0, 0.5, 0.5, 2.5;
+
+$PROGRAMM
+# ==============================================
+# SAFE - Bezpieczny automat
+# ==============================================
+# Algorytm:
+# 1. Czesto odpoczywaj zeby ladowac energie
+# 2. Zbieraj tylko bardzo blisko (<=1)
+# 3. Poruszaj sie rzadko i powoli
+# 4. Duzy generator energii (2.5) zapewnia ladowanie
+#
+# Pamiec:
+#   X[0] = kierunek (wynik skanera)
+#   X[1] = odleglosc (wynik skanera)
+#   X[10] = licznik krokow (odpoczywaj co 3)
+# ==============================================
+
+X[10] = 0.0;
+
+# Glowna petla
+{
+    X[10] = X[10] + 1.0;
+
+    # Co trzeci krok odpoczywaj zeby ladowac energie
+    IF (X[10] - 2.5) {
+        X[10] = 0.0;
+        f_0();
+    }
+
+    # Skanuj otoczenie
+    f_2(1.0, 1.0);
+
+    # Jesli zasob bardzo blisko (<=1) - zbieraj (bezpieczne)
+    IF (1.0 - X[1]) {
+        f_7(1.0);
+    }
+
+    # Jesli zasob blisko (1-3) ale nie na miejscu - ostroznie idz
+    IF (X[1] - 1.0) {
+        IF (3.0 - X[1]) {
+            f_1(X[0], 1.0);
+        }
+    }
+
+    # Jesli zasob daleko (>3) - odpoczywaj zamiast isc daleko
+    IF (X[1] - 3.0) {
+        f_0();
+    }
+
+    # Jesli nie znaleziono - odpoczywaj
+    IF (0.0 - X[1]) {
+        f_0();
+    }
+
+    REDO;
+}

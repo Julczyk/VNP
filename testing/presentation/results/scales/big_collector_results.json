@@ -1,0 +1,45 @@
+{
+  "program": "big_collector",
+  "world_seed": 42,
+  "world_size": "(80, 80)",
+  "start_position": "(15, 15)",
+  "max_ticks": 10000,
+  "final_tick": 22,
+  "automaton_died": true,
+  "death_tick": 22,
+  "total_automata": 0,
+  "final_automata_count": 0,
+  "stats": null,
+  "simulation_duration_seconds": 0.014532,
+  "stats_summary": {
+    "total_automata_died": 1,
+    "avg_lifetime": 22.0,
+    "avg_steps": 23.0,
+    "avg_distance": 9.0,
+    "avg_offspring": 0.0,
+    "avg_resources": 8.0,
+    "total_offspring": 0,
+    "total_resources": 8
+  },
+  "all_reports": [
+    {
+      "automaton_id": 1,
+      "birth_tick": 0,
+      "lifetime": 22,
+      "steps_executed": 23,
+      "distance_traveled": 9.0,
+      "offspring_count": 0,
+      "energy_produced": 0.0,
+      "energy_consumed": 112.13,
+      "energy_balance": -112.13,
+      "total_resources_collected": 8,
+      "resources_collected": {
+        "RAW_ORE": 8
+      },
+      "total_parts_produced": 0,
+      "parts_produced": {},
+      "reason": "death",
+      "report_tick": 22
+    }
+  ]
+}

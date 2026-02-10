@@ -1,0 +1,9 @@
+2026-02-10 21:17:55,750 [INFO] Start symulacji, max_ticks=500
+2026-02-10 21:17:55,751 [INFO] Tick 0: 1 automatow zyje
+2026-02-10 21:17:56,842 [INFO] Wszystkie automaty zginely w ticku 184
+2026-02-10 21:17:56,842 [INFO] === Symulacja zakonczona ===
+2026-02-10 21:17:56,842 [INFO] Tick koncowy: 184
+2026-02-10 21:17:56,842 [INFO] Automaty na koncu: 0
+2026-02-10 21:17:56,842 [INFO] Czas trwania: 1.09s
+2026-02-10 21:17:56,842 [INFO] Podsumowanie statystyk: {'total_automata_died': 36, 'avg_lifetime': 42.47222222222222, 'avg_steps': 42.5, 'avg_distance': 5.944444444444445, 'avg_offspring': 0.9722222222222222, 'avg_resources': 13.088377266214671, 'total_offspring': 35, 'total_resources': 471.18158158372813}
+2026-02-10 21:17:56,845 [INFO] Wyniki zapisane do: testing/presentation/results/test/standard_results.json

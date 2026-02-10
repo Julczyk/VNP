@@ -1,0 +1,51 @@
+2026-02-10 21:19:49,745 [INFO] Start symulacji, max_ticks=10000
+2026-02-10 21:19:49,746 [INFO] Tick 0: 1 automatow zyje
+2026-02-10 21:19:49,859 [INFO] Wszystkie automaty zginely w ticku 80
+2026-02-10 21:19:49,859 [INFO] === Symulacja zakonczona ===
+2026-02-10 21:19:49,859 [INFO] Tick koncowy: 80
+2026-02-10 21:19:49,859 [INFO] Automaty na koncu: 0
+2026-02-10 21:19:49,859 [INFO] Czas trwania: 0.11s
+2026-02-10 21:19:49,859 [INFO] Podsumowanie statystyk: {'total_automata_died': 4, 'avg_lifetime': 31.25, 'avg_steps': 31.5, 'avg_distance': 12.0, 'avg_offspring': 0.75, 'avg_resources': 6.25, 'total_offspring': 3, 'total_resources': 25}
+2026-02-10 21:19:49,860 [INFO] Wyniki zapisane do: /home/julczyk/Dokumenty/Automaty/VNP/testing/presentation/results/scales/big_engine_results.json
+2026-02-10 21:19:49,861 [INFO] 
+============================================================
+2026-02-10 21:19:49,861 [INFO] Testowanie konfiguracji: big_power
+2026-02-10 21:19:49,861 [INFO] ============================================================
+2026-02-10 21:19:49,861 [INFO] === Uruchamianie symulacji: big_power ===
+2026-02-10 21:19:49,863 [INFO] Genom: [('Engine', 1.0), ('Scanner', 1.0), ('Storage', 1.5), ('Collector', 1.0), ('Smelter', 0.5), ('Assembler', 0.5), ('PowerGenerator', 4.0)]
+2026-02-10 21:19:51,286 [INFO] Swiat: 80x80, seed=42
+2026-02-10 21:19:51,294 [INFO] Start symulacji, max_ticks=10000
+2026-02-10 21:19:51,295 [INFO] Tick 0: 1 automatow zyje
+2026-02-10 21:19:51,312 [INFO] Wszystkie automaty zginely w ticku 26
+2026-02-10 21:19:51,312 [INFO] === Symulacja zakonczona ===
+2026-02-10 21:19:51,313 [INFO] Tick koncowy: 26
+2026-02-10 21:19:51,313 [INFO] Automaty na koncu: 0
+2026-02-10 21:19:51,313 [INFO] Czas trwania: 0.02s
+2026-02-10 21:19:51,313 [INFO] Podsumowanie statystyk: {'total_automata_died': 1, 'avg_lifetime': 26.0, 'avg_steps': 27.0, 'avg_distance': 0.0, 'avg_offspring': 0.0, 'avg_resources': 0.0, 'total_offspring': 0, 'total_resources': 0}
+2026-02-10 21:19:51,314 [INFO] Wyniki zapisane do: /home/julczyk/Dokumenty/Automaty/VNP/testing/presentation/results/scales/big_power_results.json
+2026-02-10 21:19:51,314 [INFO] 
+============================================================
+2026-02-10 21:19:51,314 [INFO] Testowanie konfiguracji: balanced
+2026-02-10 21:19:51,315 [INFO] ============================================================
+2026-02-10 21:19:51,315 [INFO] === Uruchamianie symulacji: balanced ===
+2026-02-10 21:19:51,316 [INFO] Genom: [('Engine', 1.0), ('Scanner', 1.0), ('Storage', 1.5), ('Collector', 1.0), ('Smelter', 0.5), ('Assembler', 0.5), ('PowerGenerator', 1.0)]
+2026-02-10 21:19:52,796 [INFO] Swiat: 80x80, seed=42
+2026-02-10 21:19:52,803 [INFO] Start symulacji, max_ticks=10000
+2026-02-10 21:19:52,804 [INFO] Tick 0: 1 automatow zyje
+2026-02-10 21:19:52,823 [INFO] Wszystkie automaty zginely w ticku 32
+2026-02-10 21:19:52,824 [INFO] === Symulacja zakonczona ===
+2026-02-10 21:19:52,824 [INFO] Tick koncowy: 32
+2026-02-10 21:19:52,824 [INFO] Automaty na koncu: 0
+2026-02-10 21:19:52,824 [INFO] Czas trwania: 0.02s
+2026-02-10 21:19:52,825 [INFO] Podsumowanie statystyk: {'total_automata_died': 1, 'avg_lifetime': 32.0, 'avg_steps': 33.0, 'avg_distance': 0.0, 'avg_offspring': 0.0, 'avg_resources': 0.0, 'total_offspring': 0, 'total_resources': 0}
+2026-02-10 21:19:52,826 [INFO] Wyniki zapisane do: /home/julczyk/Dokumenty/Automaty/VNP/testing/presentation/results/scales/balanced_results.json
+2026-02-10 21:19:52,826 [INFO] 
+============================================================
+2026-02-10 21:19:52,826 [INFO] PODSUMOWANIE SKAL
+2026-02-10 21:19:52,826 [INFO] ============================================================
+2026-02-10 21:19:52,827 [INFO] big_scanner: tick=23, automata=0
+2026-02-10 21:19:52,827 [INFO] big_storage: tick=245, automata=0
+2026-02-10 21:19:52,827 [INFO] big_collector: tick=22, automata=0
+2026-02-10 21:19:52,827 [INFO] big_engine: tick=80, automata=0
+2026-02-10 21:19:52,827 [INFO] big_power: tick=26, automata=0
+2026-02-10 21:19:52,827 [INFO] balanced: tick=32, automata=0

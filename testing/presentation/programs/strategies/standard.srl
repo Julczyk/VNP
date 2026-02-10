@@ -1,0 +1,41 @@
+$PARTS:
+1.0, 1.0, 2.0, 1.0, 0.5, 0.5, 1.5;
+
+$PROGRAMM
+# ==============================================
+# STANDARD - Standardowy zbieracz zasobow
+# ==============================================
+# Algorytm:
+# 1. Skanuj w poszukiwaniu zasobow
+# 2. Jesli zasob blisko (<=2) - zbieraj
+# 3. Jesli daleko - idz w kierunku zasobu
+# 4. Powtorz
+#
+# Pamiec:
+#   X[0] = kierunek (wynik skanera)
+#   X[1] = odleglosc (wynik skanera)
+# ==============================================
+
+# Glowna petla
+{
+    # Krok 1: Skanuj otoczenie
+    f_2(1.0, 1.0);
+
+    # Krok 2: Sprawdz odleglosc
+    # Jesli X[1] <= 1 (bezposredni sasiad) - zbieraj
+    IF (1.5 - X[1]) {
+        f_7(1.0);
+    }
+
+    # Jesli daleko (X[1] > 1) - idz w kierunku zasobu
+    IF (X[1] - 1.5) {
+        f_1(X[0], 1.0);
+    }
+
+    # Jesli nie znaleziono (X[1] < 0) - losowy ruch
+    IF (0.0 - X[1]) {
+        f_1(0.0, 1.0);
+    }
+
+    REDO;
+}

@@ -1,0 +1,85 @@
+{
+  "program": "standard",
+  "world_seed": 42,
+  "world_size": "(80, 80)",
+  "start_position": "(15, 15)",
+  "max_ticks": 10000,
+  "final_tick": 72,
+  "automaton_died": true,
+  "death_tick": 72,
+  "total_automata": 0,
+  "final_automata_count": 0,
+  "stats": null,
+  "simulation_duration_seconds": 0.070076,
+  "stats_summary": {
+    "total_automata_died": 3,
+    "avg_lifetime": 38.0,
+    "avg_steps": 38.333333333333336,
+    "avg_distance": 9.0,
+    "avg_offspring": 0.6666666666666666,
+    "avg_resources": 9.0,
+    "total_offspring": 2,
+    "total_resources": 27
+  },
+  "all_reports": [
+    {
+      "automaton_id": 1,
+      "birth_tick": 0,
+      "lifetime": 30,
+      "steps_executed": 31,
+      "distance_traveled": 11.0,
+      "offspring_count": 2,
+      "energy_produced": 0.0,
+      "energy_consumed": 115.08,
+      "energy_balance": -115.08,
+      "total_resources_collected": 5,
+      "resources_collected": {
+        "RAW_ORE": 5
+      },
+      "total_parts_produced": 0,
+      "parts_produced": {},
+      "reason": "death",
+      "report_tick": 30
+    },
+    {
+      "automaton_id": 3,
+      "birth_tick": 26,
+      "lifetime": 37,
+      "steps_executed": 37,
+      "distance_traveled": 14.0,
+      "offspring_count": 0,
+      "energy_produced": 0.0,
+      "energy_consumed": 121.28,
+      "energy_balance": -121.28,
+      "total_resources_collected": 7,
+      "resources_collected": {
+        "RAW_ORE": 2,
+        "PROCESSED_METAL": 5
+      },
+      "total_parts_produced": 0,
+      "parts_produced": {},
+      "reason": "death",
+      "report_tick": 63
+    },
+    {
+      "automaton_id": 2,
+      "birth_tick": 25,
+      "lifetime": 47,
+      "steps_executed": 47,
+      "distance_traveled": 2.0,
+      "offspring_count": 0,
+      "energy_produced": 0.0,
+      "energy_consumed": 145.65,
+      "energy_balance": -145.65,
+      "total_resources_collected": 15,
+      "resources_collected": {
+        "RAW_ORE": 3,
+        "PROCESSED_METAL": 12
+      },
+      "total_parts_produced": 0,
+      "parts_produced": {},
+      "reason": "death",
+      "report_tick": 72
+    }
+  ]
+}
