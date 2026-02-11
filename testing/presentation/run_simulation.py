@@ -87,7 +87,7 @@ def generate_grid_positions(center: tuple, grid_size: int = 5, spacing: int = 2)
 def run_simulation(
     program_path: str = None,
     program_code: str = None,
-    max_ticks: int = 10000,
+    max_ticks: int = 300,
     world_seed: int = 42,
     world_size: tuple = (80, 80),
     start_position: tuple = (40, 40),
@@ -197,6 +197,13 @@ def run_simulation(
     else:
         image_ticks = []
 
+    # Katalog na obrazy z wizualizacji (co tick)
+    vis_dir = None
+    if show_visualization and output_dir:
+        vis_dir = output_path / 'vis'
+        vis_dir.mkdir(parents=True, exist_ok=True)
+        logger.info(f"Zapisywanie obrazow co tick do: {vis_dir}")
+
     # Uruchom symulacje
     logger.info(f"Start symulacji, max_ticks={max_ticks}")
     start_time = datetime.now()
@@ -231,6 +238,13 @@ def run_simulation(
                     save_world_image(world, output_path / f"{program_name}_tick{tick+1}.png")
                 except Exception as e:
                     logger.warning(f"Nie udalo sie zapisac obrazu: {e}")
+
+            # Zapisz obraz co tick dla wizualizacji
+            if vis_dir:
+                try:
+                    save_world_image(world, vis_dir / f"{program_name}_tick{tick:04d}.png")
+                except Exception as e:
+                    pass  # Cicha porazka dla wydajnosci
 
             # Sprawdz czy automat zyje
             if len(world.automata) == 0:
@@ -549,7 +563,7 @@ def show_world_visualization(world):
 
     logger.info(f"Uruchamianie okna wizualizacji (automaty: {len(world.automata)})")
     window = WorldView(world)
-    arcade.run()
+    # arcade.run()
 
 
 def run_strategy_tests(output_base: str = None, num_automata: int = 25, max_ticks: int = 300):
