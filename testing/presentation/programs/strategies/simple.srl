@@ -1,0 +1,43 @@
+$PARTS:
+1.0, 1.0, 1.5, 1.0, 0.5, 0.5, 1.0;
+
+$PROGRAMM
+# ==============================================
+# SIMPLE - Najprostsza strategia
+# ==============================================
+# Algorytm:
+# Tylko skanuj i zbieraj/idz. Brak optymalizacji.
+# Minimalna logika - dobra jako baseline.
+#
+# Pamiec:
+#   X[0] = energia (0.0-1.0)
+#   X[1] = kierunek (wynik skanera)
+#   X[2] = dystans (wynik skanera)
+#
+# Uwaga na idle loop:
+# - Jesli nie znaleziono zasobu, ruszamy sie losowo
+# - Dzieki temu nie stoimy w miejscu
+# ==============================================
+
+# Glowna petla
+{
+    # Skanuj
+    f_2(1.0, 1.0);
+
+    # Jesli blisko - zbieraj
+    IF (1.5 - X[2]) {
+        f_7(1.0);
+    }
+
+    # Jesli daleko - idz
+    IF (X[2] - 1.5) {
+        f_1(X[1], 1.0);
+    }
+
+    # Jesli nie znaleziono - losowy ruch (zapobiega idle loop)
+    IF (0.0 - X[2]) {
+        f_1(0.0, 1.0);
+    }
+
+    REDO;
+}
