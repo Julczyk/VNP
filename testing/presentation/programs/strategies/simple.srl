@@ -13,10 +13,11 @@ $PROGRAMM
 #   X[0] = energia (0.0-1.0)
 #   X[1] = kierunek (wynik skanera)
 #   X[2] = dystans (wynik skanera)
+#   X[10] = kierunek eksploracji (zmienia sie gdy brak zasobow)
 #
 # Uwaga na idle loop:
-# - Jesli nie znaleziono zasobu, ruszamy sie losowo
-# - Dzieki temu nie stoimy w miejscu
+# - Jesli nie znaleziono zasobu, zmieniamy kierunek
+# - Kierunek rotuje: 0 -> 1 -> 2 -> 3 -> 0
 # ==============================================
 
 # Glowna petla
@@ -34,9 +35,14 @@ $PROGRAMM
         f_1(X[1], 1.0);
     }
 
-    # Jesli nie znaleziono - losowy ruch (zapobiega idle loop)
+    # Jesli nie znaleziono - zmien kierunek i idz
     IF (0.0 - X[2]) {
-        f_1(0.0, 1.0);
+        X[10] = X[10] + 1.0;
+        # Wrap kierunek do 0-3
+        IF (X[10] - 3.5) {
+            X[10] = 0.0;
+        }
+        f_1(X[10], 1.0);
     }
 
     REDO;

@@ -1,8 +1,0 @@
-2026-02-11 00:17:09,361 [INFO] Start symulacji, max_ticks=300
-2026-02-11 00:17:09,372 [INFO] Tick 0: 25 automatow zyje
-2026-02-11 00:17:09,486 [INFO] Symulacja przerwana przez uzytkownika
-2026-02-11 00:17:09,486 [INFO] === Symulacja zakonczona ===
-2026-02-11 00:17:09,486 [INFO] Tick koncowy: 1
-2026-02-11 00:17:09,486 [INFO] Automaty na koncu: 25
-2026-02-11 00:17:09,486 [INFO] Czas trwania: 0.12s
-2026-02-11 00:17:09,487 [INFO] Wyniki zapisane do: /home/julczyk/Dokumenty/Automaty/VNP/testing/presentation/results/strategies/simple_results.json

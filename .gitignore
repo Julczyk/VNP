@@ -1,3 +1,8 @@
 .idea
 **/__pycache__/
 /prompting/
+
+# Generated experiment results (large files)
+testing/presentation/results/
+testing/presentation/videos/
+*.log

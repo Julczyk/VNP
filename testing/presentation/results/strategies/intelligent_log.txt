@@ -1,9 +1,0 @@
-2026-02-11 00:17:05,839 [INFO] Start symulacji, max_ticks=300
-2026-02-11 00:17:05,854 [INFO] Tick 0: 25 automatow zyje
-2026-02-11 00:17:06,216 [INFO] Zapisano obraz: /home/julczyk/Dokumenty/Automaty/VNP/testing/presentation/results/strategies/intelligent_tick1.png
-2026-02-11 00:17:08,048 [INFO] Symulacja przerwana przez uzytkownika
-2026-02-11 00:17:08,048 [INFO] === Symulacja zakonczona ===
-2026-02-11 00:17:08,048 [INFO] Tick koncowy: 29
-2026-02-11 00:17:08,048 [INFO] Automaty na koncu: 71
-2026-02-11 00:17:08,049 [INFO] Czas trwania: 2.21s
-2026-02-11 00:17:08,049 [INFO] Wyniki zapisane do: /home/julczyk/Dokumenty/Automaty/VNP/testing/presentation/results/strategies/intelligent_results.json

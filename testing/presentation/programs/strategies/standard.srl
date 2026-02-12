@@ -9,14 +9,16 @@ $PROGRAMM
 # 1. Skanuj w poszukiwaniu zasobow
 # 2. Jesli zasob blisko (<=2) - zbieraj
 # 3. Jesli daleko - idz w kierunku zasobu
-# 4. Powtorz
+# 4. Jesli brak zasobow - eksploruj zmieniajac kierunek
 #
 # Pamiec:
 #   X[0] = energia (0.0-1.0)
 #   X[1] = kierunek (wynik skanera)
 #   X[2] = dystans (wynik skanera)
+#   X[10] = kierunek eksploracji (0-3)
+#   X[11] = licznik krokow w kierunku
 #
-# Idle loop: zapobiegamy przez losowy ruch gdy brak zasobow
+# Idle loop: zapobiegamy przez rotacje kierunkow co 4 kroki
 # ==============================================
 
 # Glowna petla
@@ -27,17 +29,32 @@ $PROGRAMM
     # Krok 2: Sprawdz odleglosc
     # Jesli X[2] <= 1 (bezposredni sasiad) - zbieraj
     IF (1.5 - X[2]) {
+        X[11] = 0.0;
         f_7(1.0);
     }
 
     # Jesli daleko (X[2] > 1) - idz w kierunku zasobu
     IF (X[2] - 1.5) {
+        X[11] = 0.0;
+        X[10] = X[1];
         f_1(X[1], 1.0);
     }
 
-    # Jesli nie znaleziono (X[2] < 0) - losowy ruch
+    # Jesli nie znaleziono (X[2] < 0) - eksploruj z rotacja kierunkow
     IF (0.0 - X[2]) {
-        f_1(0.0, 1.0);
+        X[11] = X[11] + 1.0;
+
+        # Zmien kierunek co 4 kroki
+        IF (X[11] - 3.5) {
+            X[11] = 0.0;
+            X[10] = X[10] + 1.0;
+            # Wrap kierunek do zakresu 0-3
+            IF (X[10] - 3.5) {
+                X[10] = 0.0;
+            }
+        }
+
+        f_1(X[10], 1.0);
     }
 
     REDO;

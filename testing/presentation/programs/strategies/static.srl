@@ -16,8 +16,9 @@ $PROGRAMM
 #   X[1] = kierunek (wynik skanera)
 #   X[2] = dystans (wynik skanera)
 #   X[30] = licznik zbieran (odpoczywaj co 5)
+#   X[31] = kierunek eksploracji gdy brak zasobow
 #
-# Idle loop: zapobiegamy przez losowy ruch gdy brak zasobow
+# Idle loop: zapobiegamy przez rotacje kierunkow
 # ==============================================
 
 X[30] = 0.0;
@@ -46,9 +47,14 @@ X[30] = 0.0;
         f_1(X[1], 1.0);
     }
 
-    # Jesli nie znaleziono - maly losowy ruch
+    # Jesli nie znaleziono - powolne szukanie w rotujacych kierunkach
     IF (0.0 - X[2]) {
-        f_1(0.0, 1.0);
+        X[31] = X[31] + 1.0;
+        # Wrap kierunek do 0-3
+        IF (X[31] - 3.5) {
+            X[31] = 0.0;
+        }
+        f_1(X[31], 1.0);
     }
 
     REDO;

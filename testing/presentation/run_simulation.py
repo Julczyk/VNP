@@ -314,7 +314,7 @@ def run_mixed_simulation(
     world_size: tuple = (80, 80),
     start_position: tuple = (40, 40),
     output_dir: str = None,
-    save_images: bool = False,
+    save_images=False,
     result_name: str = None
 ) -> dict:
     """
@@ -394,7 +394,13 @@ def run_mixed_simulation(
         file_handler.setFormatter(logging.Formatter('%(asctime)s [%(levelname)s] %(message)s'))
         logger.addHandler(file_handler)
 
-    image_ticks = [100, 1000, 10000] if save_images else []
+    # Okresl ticki do zapisania obrazow
+    if isinstance(save_images, list):
+        image_ticks = save_images
+    elif save_images:
+        image_ticks = [1, 50, 150, 300]
+    else:
+        image_ticks = []
 
     # Uruchom symulacje
     logger.info(f"Start symulacji, max_ticks={max_ticks}")
@@ -566,7 +572,7 @@ def show_world_visualization(world):
     # arcade.run()
 
 
-def run_strategy_tests(output_base: str = None, num_automata: int = 25, max_ticks: int = 300):
+def run_strategy_tests(output_base: str = None, num_automata: int = 25, max_ticks: int = 300, save_every_tick: bool = False):
     """Uruchamia testy wszystkich strategii z wieloma automatami."""
     strategies_dir = Path(__file__).parent / 'programs' / 'strategies'
 
@@ -578,8 +584,11 @@ def run_strategy_tests(output_base: str = None, num_automata: int = 25, max_tick
     strategies = list(strategies_dir.glob('*.srl'))
     logger.info(f"Znaleziono {len(strategies)} strategii do przetestowania")
 
-    # Obrazy w tickach 1, 50, 150, 300
-    image_ticks = [1, 50, 150, 300]
+    # Obrazy w tickach 1, 50, 150, 300 lub co tick
+    if save_every_tick:
+        image_ticks = list(range(1, max_ticks + 1))
+    else:
+        image_ticks = [1, 50, 150, 300]
 
     all_results = []
     for strategy_file in strategies:
@@ -587,12 +596,16 @@ def run_strategy_tests(output_base: str = None, num_automata: int = 25, max_tick
         logger.info(f"Testowanie strategii: {strategy_file.stem}")
         logger.info(f"{'='*60}")
 
+        # Katalog na obrazy dla tej strategii
+        strategy_output = Path(output_base) / strategy_file.stem
+        strategy_output.mkdir(parents=True, exist_ok=True)
+
         result = run_simulation(
             program_path=str(strategy_file),
             max_ticks=max_ticks,
             world_seed=42,
             num_automata=num_automata,
-            output_dir=str(output_base),
+            output_dir=str(strategy_output),
             save_images=image_ticks,
             show_visualization=False
         )
@@ -610,7 +623,7 @@ def run_strategy_tests(output_base: str = None, num_automata: int = 25, max_tick
     return all_results
 
 
-def run_scale_tests(output_base: str = None, num_automata: int = 25):
+def run_scale_tests(output_base: str = None, num_automata: int = 25, max_ticks: int = 300, save_every_tick: bool = False):
     """Uruchamia testy roznych skal czesci."""
     scales_dir = Path(__file__).parent / 'programs' / 'scales'
 
@@ -622,19 +635,29 @@ def run_scale_tests(output_base: str = None, num_automata: int = 25):
     scales = [f for f in scales_dir.glob('*.srl') if f.stat().st_size > 0]
     logger.info(f"Znaleziono {len(scales)} konfiguracji skal do przetestowania")
 
+    # Obrazy co tick lub w wybranych momentach
+    if save_every_tick:
+        image_ticks = list(range(1, max_ticks + 1))
+    else:
+        image_ticks = [1, 50, 150, 300]
+
     all_results = []
     for scale_file in scales:
         logger.info(f"\n{'='*60}")
         logger.info(f"Testowanie konfiguracji: {scale_file.stem}")
         logger.info(f"{'='*60}")
 
+        # Katalog na obrazy dla tej skali
+        scale_output = Path(output_base) / scale_file.stem
+        scale_output.mkdir(parents=True, exist_ok=True)
+
         result = run_simulation(
             program_path=str(scale_file),
-            max_ticks=10000,
+            max_ticks=max_ticks,
             world_seed=42,
             num_automata=num_automata,
-            output_dir=str(output_base),
-            save_images=True,
+            output_dir=str(scale_output),
+            save_images=image_ticks,
             show_visualization=False
         )
         all_results.append(result)
@@ -651,7 +674,7 @@ def run_scale_tests(output_base: str = None, num_automata: int = 25):
     return all_results
 
 
-def run_world_tests(output_base: str = None, num_automata: int = 25):
+def run_world_tests(output_base: str = None, num_automata: int = 25, max_ticks: int = 300, save_every_tick: bool = False):
     """Uruchamia testy z roznymi parametrami swiata i resource thresholds."""
     intelligent_program = Path(__file__).parent / 'programs' / 'strategies' / 'intelligent.srl'
 
@@ -686,20 +709,30 @@ def run_world_tests(output_base: str = None, num_automata: int = 25):
 
     logger.info(f"Testowanie {len(world_configs)} konfiguracji swiata")
 
+    # Obrazy co tick lub w wybranych momentach
+    if save_every_tick:
+        image_ticks = list(range(1, max_ticks + 1))
+    else:
+        image_ticks = [1, 50, 150, 300]
+
     all_results = []
     for config in world_configs:
         logger.info(f"\n{'='*60}")
         logger.info(f"Testowanie swiata: {config['name']}")
         logger.info(f"{'='*60}")
 
+        # Katalog na obrazy dla tej konfiguracji swiata
+        world_output = Path(output_base) / config['name']
+        world_output.mkdir(parents=True, exist_ok=True)
+
         result = run_simulation(
             program_path=str(intelligent_program),
-            max_ticks=10000,
+            max_ticks=max_ticks,
             world_seed=config['seed'],
             world_size=config['size'],
             num_automata=num_automata,
-            output_dir=str(output_base),
-            save_images=True,
+            output_dir=str(world_output),
+            save_images=image_ticks,
             show_visualization=False,
             resource_thresholds=config['thresholds'],
             result_name=config['name']
@@ -719,7 +752,7 @@ def run_world_tests(output_base: str = None, num_automata: int = 25):
     return all_results
 
 
-def run_mixed_tests(output_base: str = None):
+def run_mixed_tests(output_base: str = None, max_ticks: int = 300, save_every_tick: bool = False):
     """E4: Uruchamia testy mieszajace rozne strategie."""
     strategies_dir = Path(__file__).parent / 'programs' / 'strategies'
 
@@ -761,6 +794,12 @@ def run_mixed_tests(output_base: str = None):
 
     logger.info(f"Testowanie {len(mixed_configs)} kombinacji strategii")
 
+    # Obrazy co tick lub w wybranych momentach
+    if save_every_tick:
+        image_ticks = list(range(1, max_ticks + 1))
+    else:
+        image_ticks = [1, 50, 150, 300]
+
     all_results = []
     for config in mixed_configs:
         logger.info(f"\n{'='*60}")
@@ -774,12 +813,16 @@ def run_mixed_tests(output_base: str = None):
             logger.warning(f"Brak dostepnych programow dla {config['name']}")
             continue
 
+        # Katalog na obrazy dla tej kombinacji
+        mixed_output = output_base / config['name']
+        mixed_output.mkdir(parents=True, exist_ok=True)
+
         result = run_mixed_simulation(
             programs=valid_programs,
-            max_ticks=10000,
+            max_ticks=max_ticks,
             world_seed=42,
-            output_dir=str(output_base),
-            save_images=True,
+            output_dir=str(mixed_output),
+            save_images=image_ticks,
             result_name=config['name']
         )
         all_results.append(result)
@@ -802,12 +845,13 @@ def run_mixed_tests(output_base: str = None):
 def main():
     parser = argparse.ArgumentParser(description='Uruchom symulacje VNP')
     parser.add_argument('--program', '-p', type=str, help='Sciezka do programu .srl')
-    parser.add_argument('--ticks', '-t', type=int, default=10000, help='Maksymalna liczba tickow')
+    parser.add_argument('--ticks', '-t', type=int, default=300, help='Maksymalna liczba tickow')
     parser.add_argument('--seed', '-s', type=int, default=42, help='Seed swiata')
     parser.add_argument('--output', '-o', type=str, help='Katalog wyjsciowy')
     parser.add_argument('--images', '-i', action='store_true', help='Zapisuj obrazy')
     parser.add_argument('--visualize', '-v', action='store_true', help='Pokaz wizualizacje')
     parser.add_argument('--num-automata', '-n', type=int, default=25, help='Liczba automatow na start')
+    parser.add_argument('--save-every-tick', action='store_true', help='Zapisuj obraz co tick')
 
     parser.add_argument('--strategies', action='store_true', help='Uruchom testy strategii (E1)')
     parser.add_argument('--scales', action='store_true', help='Uruchom testy skal (E2)')
@@ -817,24 +861,27 @@ def main():
 
     args = parser.parse_args()
 
+    max_ticks = args.ticks
+    save_every_tick = args.save_every_tick
+
     if args.all:
         logger.info("=== URUCHAMIANIE WSZYSTKICH TESTOW ===")
-        run_strategy_tests(num_automata=args.num_automata)
-        run_scale_tests(num_automata=args.num_automata)
-        run_world_tests(num_automata=args.num_automata)
-        run_mixed_tests()
+        run_strategy_tests(num_automata=args.num_automata, max_ticks=max_ticks, save_every_tick=save_every_tick)
+        run_scale_tests(num_automata=args.num_automata, max_ticks=max_ticks, save_every_tick=save_every_tick)
+        run_world_tests(num_automata=args.num_automata, max_ticks=max_ticks, save_every_tick=save_every_tick)
+        run_mixed_tests(max_ticks=max_ticks, save_every_tick=save_every_tick)
     elif args.strategies:
-        run_strategy_tests(num_automata=args.num_automata)
+        run_strategy_tests(num_automata=args.num_automata, max_ticks=max_ticks, save_every_tick=save_every_tick)
     elif args.scales:
-        run_scale_tests(num_automata=args.num_automata)
+        run_scale_tests(num_automata=args.num_automata, max_ticks=max_ticks, save_every_tick=save_every_tick)
     elif args.worlds:
-        run_world_tests(num_automata=args.num_automata)
+        run_world_tests(num_automata=args.num_automata, max_ticks=max_ticks, save_every_tick=save_every_tick)
     elif args.mixed:
-        run_mixed_tests()
+        run_mixed_tests(max_ticks=max_ticks, save_every_tick=save_every_tick)
     elif args.program:
         run_simulation(
             program_path=args.program,
-            max_ticks=args.ticks,
+            max_ticks=max_ticks,
             world_seed=args.seed,
             num_automata=args.num_automata,
             output_dir=args.output,
