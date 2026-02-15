@@ -20,6 +20,7 @@ RESOURCE_COLORS = {
     ResourceType.URANIUM: arcade.color.LIME_GREEN,
 
     ResourceType.PROCESSED_METAL: arcade.color.SILVER,
+    ResourceType.GOLD_INGOT: arcade.color.AMBER,
     ResourceType.ENERGY: arcade.color.YELLOW,
 
     ResourceType.PART_ENGINE: arcade.color.RED,

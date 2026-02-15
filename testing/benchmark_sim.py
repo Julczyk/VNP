@@ -8,8 +8,10 @@ sys.path.append(os.path.join(os.path.dirname(__file__), "../src"))
 from world.world import World
 from automaton import Automaton
 from parts import Engine, Scanner, Storage, Collector, Smelter, Assembler, PowerGenerator
+from stats import setup_stats_logging
 
 def benchmark():
+    setup_stats_logging()
     print("Setting up benchmark...")
     world = World(80, 80, seed=42)
     

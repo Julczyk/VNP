@@ -20,6 +20,7 @@ class ResourceType(Enum):
     IRON = 4
     GOLD = 5
     URANIUM = 6
+    GOLD_INGOT = 7 # Sztabka zlota
     # ID części jako "surowiec" w magazynie
     PART_ENGINE = 101
     PART_SCANNER = 102
@@ -33,6 +34,7 @@ RESOURCE_MASS = {
     ResourceType.ENERGY: 0.0,
     ResourceType.RAW_ORE: 2.0,
     ResourceType.PROCESSED_METAL: 1.0,
+    ResourceType.GOLD_INGOT: 2.5, # Sztabka jest ciezka
 
     # Części jako ładunek
     ResourceType.PART_ENGINE: 10.0,

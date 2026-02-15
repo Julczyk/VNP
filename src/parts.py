@@ -57,7 +57,11 @@ class Engine(Part):
 
         if robot.consume_energy(energy_req):
             robot.world.move_robot(robot, direction, 1)
+            # print(f"Robot {robot.stats.automaton_id} MOVED dir={direction} dist={distance}")
             return True
+        else:
+            # print(f"Robot {robot.stats.automaton_id} MOVE FAILED: Low Energy ({robot.energy} < {energy_req})")
+            pass
 
         return False
 
@@ -146,29 +150,39 @@ class Smelter(Part):
     def execute_action(self, robot, args: list[float]):
         """
         f_4(amount)
-        Przetwarza RAW_ORE -> PROCESSED_METAL
+        Przetwarza zasoby:
+        1. GOLD -> GOLD_INGOT (Priorytet)
+        2. RAW_ORE -> PROCESSED_METAL
         """
-        amount = max(1, int(args[0]))  # ilość jednostek rudy
+        amount = max(1, int(args[0]))
         energy_cost = amount * self.active_energy_cost
 
         storage = self._get_storage(robot)
         if storage is None:
             return False
 
-        # Sprawdzenia niepodzielności
-        if storage.contents.get(ResourceType.RAW_ORE, 0) < amount:
-            return False
-
-        if not storage.has_space(amount):
-            return False
-
         if not robot.consume_energy(energy_cost):
             return False
 
-        # Wykonanie procesu
-        storage.contents[ResourceType.RAW_ORE] -= amount
-        storage.add_item(ResourceType.PROCESSED_METAL, amount)
-        return True
+        # --- 1. Przetwarzanie Złota ---
+        if storage.contents.get(ResourceType.GOLD, 0) >= amount:
+            if storage.has_space(amount): # Zakładamy 1:1 masa/objętość dla uproszczenia logicznego tutaj
+                storage.contents[ResourceType.GOLD] -= amount
+                storage.add_item(ResourceType.GOLD_INGOT, amount)
+                
+                # Statystyki fitness
+                if hasattr(robot, 'stats'):
+                    robot.stats.record_gold_processed(amount)
+                return True
+
+        # --- 2. Przetwarzanie Rudy (Fallback) ---
+        if storage.contents.get(ResourceType.RAW_ORE, 0) >= amount:
+            if storage.has_space(amount):
+                storage.contents[ResourceType.RAW_ORE] -= amount
+                storage.add_item(ResourceType.PROCESSED_METAL, amount)
+                return True
+
+        return False
 
     def _get_storage(self, robot):
         for p in robot.parts:
@@ -257,7 +271,7 @@ class Collector(Part):
         f_COLLECT(amount)
         Zbiera zasoby z aktualnego kafelka lub sąsiedztwa.
         """
-        print(">>> COLLECT EXECUTED")
+        # print(">>> COLLECT EXECUTED")
 
         # --- 1. Ile zbieramy ---
         amount = int(args[0]) if args else 1
@@ -300,7 +314,7 @@ class Collector(Part):
                 robot.last_collected_tick = robot.world.tick
                 robot.memory[2] = -1  # wymuś nowe skanowanie (dystans = -1)
 
-                print(f"[Tick {robot.world.tick}] COLLECTED {collected} at {pos}")
+                # print(f"[Tick {robot.world.tick}] COLLECTED {collected} at {pos}")
                 return True
 
         return False

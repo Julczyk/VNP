@@ -26,6 +26,7 @@ class AutomatonStats:
 
     # Identyfikacja
     automaton_id: int = 0
+    parent_id: int = 0  # ID rodzica (0 jeśli brak)
     birth_tick: int = 0
 
     # Liczniki podstawowe
@@ -42,6 +43,9 @@ class AutomatonStats:
 
     # Części wyprodukowane (per typ)
     parts_produced: Dict[ResourceType, int] = field(default_factory=dict)
+    
+    # Specjalne: Przetworzone złoto
+    gold_processed: int = 0
 
     # Ostatni tick raportowania
     last_report_tick: int = 0
@@ -63,6 +67,10 @@ class AutomatonStats:
         """Rejestruje wyprodukowanie części."""
         current = self.parts_produced.get(part_type, 0)
         self.parts_produced[part_type] = current + amount
+        
+    def record_gold_processed(self, amount: int):
+        """Rejestruje przetworzenie złota."""
+        self.gold_processed += amount
 
     def record_offspring(self):
         """Rejestruje narodziny potomka."""
@@ -88,10 +96,17 @@ class AutomatonStats:
         """Zwraca czas życia automatu w tickach."""
         return current_tick - self.birth_tick
 
+    def calculate_fitness(self) -> float:
+        """
+        Oblicza fitness osobnika: ilość przetworzonego złota.
+        """
+        return float(self.gold_processed)
+
     def to_dict(self, current_tick: int) -> dict:
         """Konwertuje statystyki do słownika."""
         return {
             'automaton_id': self.automaton_id,
+            'parent_id': self.parent_id,
             'birth_tick': self.birth_tick,
             'lifetime': self.get_lifetime(current_tick),
             'steps_executed': self.steps_executed,
@@ -104,32 +119,29 @@ class AutomatonStats:
             'resources_collected': {k.name: v for k, v in self.resources_collected.items()},
             'total_parts_produced': self.get_total_parts_produced(),
             'parts_produced': {k.name: v for k, v in self.parts_produced.items()},
+            'gold_processed': self.gold_processed,
+            'fitness_score': self.calculate_fitness(),
         }
 
     def format_report(self, current_tick: int, reason: str = "periodic") -> str:
         """Formatuje raport statystyk."""
         data = self.to_dict(current_tick)
+        
+        # Pobierz lineage fitness z managera
+        lineage_fitness = stats_manager.calculate_lineage_fitness(self.automaton_id)
 
         lines = [
             f"=== STATS REPORT ({reason}) ===",
-            f"Automaton ID: {data['automaton_id']}",
-            f"Lifetime: {data['lifetime']} ticks (born: {data['birth_tick']})",
-            f"Steps executed: {data['steps_executed']}",
-            f"Distance traveled: {data['distance_traveled']}",
+            f"Automaton ID: {data['automaton_id']} (Parent: {data['parent_id']})",
+            f"Lifetime: {data['lifetime']} ticks",
+            f"GOLD PROCESSED (Fitness): {data['gold_processed']}",
+            f"LINEAGE FITNESS (Total Gold): {lineage_fitness}",
             f"Offspring: {data['offspring_count']}",
-            f"Energy: produced={data['energy_produced']}, consumed={data['energy_consumed']}, balance={data['energy_balance']}",
             f"Resources collected: {data['total_resources_collected']} total",
         ]
-
-        if self.resources_collected:
-            for res_name, amount in data['resources_collected'].items():
-                lines.append(f"  - {res_name}: {amount}")
-
-        lines.append(f"Parts produced: {data['total_parts_produced']} total")
-
-        if self.parts_produced:
-            for part_name, amount in data['parts_produced'].items():
-                lines.append(f"  - {part_name}: {amount}")
+        
+        if self.gold_processed > 0:
+             lines.append(f"  *** GOLD SMELTER ***")
 
         lines.append("=" * 30)
 
@@ -145,14 +157,18 @@ class StatsManager:
     def __init__(self):
         self._next_id = 1
         self._all_reports: list[dict] = []
+        # Mapa id -> AutomatonStats (do obliczania lineage)
+        self._stats_map: Dict[int, AutomatonStats] = {}
 
-    def create_stats(self, birth_tick: int) -> AutomatonStats:
+    def create_stats(self, birth_tick: int, parent_id: int = 0) -> AutomatonStats:
         """Tworzy nowy obiekt statystyk dla automatu."""
         stats = AutomatonStats(
             automaton_id=self._next_id,
+            parent_id=parent_id,
             birth_tick=birth_tick,
             last_report_tick=birth_tick
         )
+        self._stats_map[self._next_id] = stats
         self._next_id += 1
         return stats
 
@@ -173,10 +189,37 @@ class StatsManager:
         report_data = stats.to_dict(current_tick)
         report_data['reason'] = reason
         report_data['report_tick'] = current_tick
+        # Dodajemy lineage fitness do raportu danych
+        report_data['lineage_fitness'] = self.calculate_lineage_fitness(stats.automaton_id)
+        
         self._all_reports.append(report_data)
 
         # Aktualizuj tick ostatniego raportu
         stats.last_report_tick = current_tick
+    
+    def calculate_lineage_fitness(self, root_id: int) -> int:
+        """
+        Oblicza sumaryczną ilość przetworzonego złota przez osobnika i wszystkich jego potomków.
+        """
+        total_gold = 0
+        
+        if root_id not in self._stats_map:
+            return 0
+            
+        # Złoto tego osobnika
+        total_gold += self._stats_map[root_id].gold_processed
+        
+        # Znajdź bezpośrednie dzieci
+        children_ids = [
+            sid for sid, s in self._stats_map.items() 
+            if s.parent_id == root_id
+        ]
+        
+        # Rekurencyjnie dodaj złoto potomków
+        for child_id in children_ids:
+            total_gold += self.calculate_lineage_fitness(child_id)
+            
+        return total_gold
 
     def get_all_reports(self) -> list[dict]:
         """Zwraca wszystkie zebrane raporty."""
@@ -198,9 +241,7 @@ class StatsManager:
             'avg_steps': sum(r['steps_executed'] for r in death_reports) / len(death_reports),
             'avg_distance': sum(r['distance_traveled'] for r in death_reports) / len(death_reports),
             'avg_offspring': sum(r['offspring_count'] for r in death_reports) / len(death_reports),
-            'avg_resources': sum(r['total_resources_collected'] for r in death_reports) / len(death_reports),
-            'total_offspring': sum(r['offspring_count'] for r in death_reports),
-            'total_resources': sum(r['total_resources_collected'] for r in death_reports),
+            'total_gold_processed': sum(r.get('gold_processed', 0) for r in death_reports),
         }
 
 

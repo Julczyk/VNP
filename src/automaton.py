@@ -6,7 +6,7 @@ from stats import stats_manager, AutomatonStats
 REPRODUCTION_ENERGY_COST = 10
 
 class Automaton:
-    def __init__(self, program_code, parts_genome, world, position, debug_interpreter=False):
+    def __init__(self, program_code, parts_genome, world, position, parent_id=0, debug_interpreter=False):
         self.world = world
         self.position = position
         self.alive = True
@@ -27,7 +27,7 @@ class Automaton:
         self.energy = 100.0  # Startowa energia
 
         # System statystyk
-        self.stats: AutomatonStats = stats_manager.create_stats(self.birth_tick)
+        self.stats: AutomatonStats = stats_manager.create_stats(self.birth_tick, parent_id)
 
     def _assemble_robot(self, genome):
         """Tworzy instancje części na podstawie genomu."""
@@ -235,10 +235,13 @@ class Automaton:
         from world.tile import WaterTile
         import random
 
+        CHILD_START_ENERGY = 50.0
+        TOTAL_COST = REPRODUCTION_ENERGY_COST + CHILD_START_ENERGY
+
         if self.world.tick - self.birth_tick < 20:
             return None
 
-        if self.energy < REPRODUCTION_ENERGY_COST:
+        if self.energy < TOTAL_COST:
             return None
         
         MAX_LOCAL_DENSITY = 6
@@ -297,15 +300,24 @@ class Automaton:
                 spawn_pos = pos
                 break
 
-        self.consume_energy(REPRODUCTION_ENERGY_COST)
+        self.consume_energy(TOTAL_COST)
+
+        # --- EWOLUCJA ---
+        from genetics import Mutator
+        # Kopiujemy genom, aby nie modyfikować rodzica
+        new_genome = Mutator.mutate_genome(list(self.parts_genome))
 
         # --- STWORZENIE DZIECKA ---
         child = Automaton(
             program_code=self.interpreter.program,
-            parts_genome=self.parts_genome,
+            parts_genome=new_genome,
             world=self.world,
-            position=spawn_pos
+            position=spawn_pos,
+            parent_id=self.stats.automaton_id
         )
+        
+        # Transfer energii do dziecka
+        child.energy = CHILD_START_ENERGY
 
         self.children_count += 1
 
