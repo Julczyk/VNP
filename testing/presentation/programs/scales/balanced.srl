@@ -10,8 +10,9 @@ $PROGRAMM
 #
 # Pamiec:
 #   X[0] = energia (0.0-1.0)
-#   X[1] = kierunek (wynik skanera)
-#   X[2] = dystans (wynik skanera)
+#   X[1] = typ zasobu (0=brak, 1=IRON, 2=GOLD, 3=inne)
+#   X[2] = kierunek (wynik skanera)
+#   X[3] = dystans (wynik skanera)
 #   X[10] = ostatni kierunek ruchu
 #   X[11] = licznik krokow bez zasobu
 # ==============================================
@@ -26,7 +27,7 @@ $PROGRAMM
     IF (X[0] - 0.2) {
         IF (0.4 - X[0]) {
             f_2(1.0, 1.0);
-            IF (1.5 - X[2]) {
+            IF (1.5 - X[3]) {
                 f_7(1.0);
             }
             f_0();
@@ -37,15 +38,15 @@ $PROGRAMM
     IF (X[0] - 0.4) {
         IF (0.7 - X[0]) {
             f_2(1.0, 1.0);
-            IF (1.5 - X[2]) {
+            IF (1.5 - X[3]) {
                 X[11] = 0.0;
                 f_7(1.0);
             }
-            IF (X[2] - 1.5) {
-                IF (8.0 - X[2]) {
+            IF (X[3] - 1.5) {
+                IF (8.0 - X[3]) {
                     X[11] = 0.0;
-                    X[10] = X[1];
-                    f_1(X[1], 1.0);
+                    X[10] = X[2];
+                    f_1(X[2], 1.0);
                 }
             }
             X[11] = X[11] + 1.0;
@@ -66,14 +67,14 @@ $PROGRAMM
     # === TRYB AGRESYWNY: energia > 70% ===
     IF (X[0] - 0.7) {
         f_2(1.0, 1.0);
-        IF (1.5 - X[2]) {
+        IF (1.5 - X[3]) {
             X[11] = 0.0;
             f_7(1.0);
         }
-        IF (X[2] - 1.5) {
+        IF (X[3] - 1.5) {
             X[11] = 0.0;
-            X[10] = X[1];
-            f_1(X[1], 2.0);
+            X[10] = X[2];
+            f_1(X[2], 2.0);
         }
         X[11] = X[11] + 1.0;
         IF (6.0 - X[11]) {

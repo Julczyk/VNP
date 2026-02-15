@@ -10,7 +10,7 @@ class FunctionID(Enum):
     ASSEMBLE = 5    # Assembler (Produkcja części)
     CHECK_BAT = 6   # Akumulator (status)
     COLLECT = 7     # Zbieranie zasobów
-    # 8-9 zarezerwowane na przyszłość
+    DEPOSIT = 8     # GoldDepositor (paczki złota)
 
 class ResourceType(Enum):
     ENERGY = 0
@@ -20,6 +20,7 @@ class ResourceType(Enum):
     IRON = 4
     GOLD = 5
     URANIUM = 6
+    GOLD_PACKAGE = 7
     # ID części jako "surowiec" w magazynie
     PART_ENGINE = 101
     PART_SCANNER = 102
@@ -33,6 +34,7 @@ RESOURCE_MASS = {
     ResourceType.ENERGY: 0.0,
     ResourceType.RAW_ORE: 2.0,
     ResourceType.PROCESSED_METAL: 1.0,
+    ResourceType.GOLD_PACKAGE: 15.0,
 
     # Części jako ładunek
     ResourceType.PART_ENGINE: 10.0,
@@ -84,7 +86,7 @@ def get_function_to_part_map():
     Zwraca mapowanie FunctionID -> klasa części.
     Lazy import aby uniknąć cyklicznych zależności.
     """
-    from parts import Engine, Scanner, Storage, Smelter, Assembler, Collector, PowerGenerator
+    from parts import Engine, Scanner, Storage, Smelter, Assembler, Collector, PowerGenerator, GoldDepositor
 
     return {
         FunctionID.IDLE: PowerGenerator,    # f_0 - odpoczynek/ładowanie
@@ -95,6 +97,7 @@ def get_function_to_part_map():
         FunctionID.ASSEMBLE: Assembler,     # f_5 - assembler
         # FunctionID.CHECK_BAT: Battery,    # f_6 - akumulator (niezaimplementowany)
         FunctionID.COLLECT: Collector,      # f_7 - zbieranie
+        FunctionID.DEPOSIT: GoldDepositor,  # f_8 - paczki złota
     }
 
 
@@ -108,7 +111,20 @@ PARTS_ORDER = [
     FunctionID.SMELT,     # 4 - Smelter
     FunctionID.ASSEMBLE,  # 5 - Assembler
     FunctionID.IDLE,      # 6 - PowerGenerator
+    FunctionID.DEPOSIT,   # 7 - GoldDepositor
 ]
+
+# Mapowanie wartości argumentu skanera na typ zasobu
+SCANNER_RESOURCE_MAP = {
+    0: None,                        # dowolny (najbliższy)
+    1: ResourceType.RAW_ORE,
+    2: ResourceType.IRON,
+    3: ResourceType.GOLD,
+    4: ResourceType.COAL,
+    5: ResourceType.URANIUM,
+    6: ResourceType.GOLD_PACKAGE,
+    7: ResourceType.PROCESSED_METAL,
+}
 
 
 def get_parts_classes_ordered():

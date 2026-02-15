@@ -6,3 +6,4 @@
 testing/presentation/results/
 testing/presentation/videos/
 *.log
+/examples/mutated/

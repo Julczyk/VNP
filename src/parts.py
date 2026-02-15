@@ -70,6 +70,11 @@ class Scanner(Part):
         """
         f_2(pow, res_type).
         Skanuje otoczenie i zapisuje wynik do pamięci.
+
+        Nowy layout pamięci:
+        - X[1] = typ zasobu (0=brak, 1=IRON, 2=GOLD, 3=inne)
+        - X[2] = kierunek (0-3 lub -1 jeśli nie znaleziono)
+        - X[3] = dystans (Manhattan distance)
         """
         radius = self.scale * 5
         target_res = int(args[1]) if len(args) > 1 else None
@@ -77,11 +82,12 @@ class Scanner(Part):
         if robot.consume_energy(self.active_energy_cost):
             result = robot.world.scan_area(robot.position, radius, target_res)
             # Zapisz wynik do pamięci
-            # Konwencja: X[0] = energia, X[1] = kierunek, X[2] = dystans
-            robot.memory[1] = result['dir']
-            robot.memory[2] = result['dist']
+            # Nowy layout: X[1] = typ, X[2] = kierunek, X[3] = dystans
+            robot.memory[1] = result['resource_type']
+            robot.memory[2] = result['dir']
+            robot.memory[3] = result['dist']
             if result['dir'] < 0:
-                robot.memory[2] = -1  # wymuś losowy krok w Engine
+                robot.memory[3] = -1  # wymuś losowy krok w Engine
 
 class Storage(Part):
     def __init__(self, scale):
@@ -186,6 +192,12 @@ PART_RECIPES = {
         ResourceType.PROCESSED_METAL: 8,
         "energy": 15
     }
+}
+
+GOLD_PACKAGE_RECIPE = {
+    ResourceType.RAW_ORE: 3,   # opakowanie
+    ResourceType.GOLD: 2,      # ładunek
+    "energy": 10
 }
 
 
@@ -298,10 +310,62 @@ class Collector(Part):
                 robot.energy = min(robot.max_energy, robot.energy + 3)
 
                 robot.last_collected_tick = robot.world.tick
-                robot.memory[2] = -1  # wymuś nowe skanowanie (dystans = -1)
+                robot.memory[3] = -1  # wymuś nowe skanowanie (dystans = -1)
 
                 print(f"[Tick {robot.world.tick}] COLLECTED {collected} at {pos}")
                 return True
 
         return False
+
+
+class GoldDepositor(Part):
+    """
+    f_8(amount) - tworzy paczkę złota na obecnym kafelku.
+    Wymaga RAW_ORE (opakowanie) + GOLD (ładunek) + energii.
+    """
+
+    def get_function_id(self):
+        return FunctionID.DEPOSIT.value
+
+    def execute_action(self, robot, args: list[float]):
+        """
+        f_8(amount)
+        Tworzy paczkę złota i umieszcza ją na obecnym kafelku.
+        """
+        amount = int(args[0]) if args else 1
+        amount = max(1, amount)
+
+        # Znajdź magazyn
+        storages = robot.get_storage_parts()
+        if not storages:
+            return False
+        storage = storages[0]
+
+        # Sprawdź zasoby w magazynie
+        ore_needed = GOLD_PACKAGE_RECIPE[ResourceType.RAW_ORE] * amount
+        gold_needed = GOLD_PACKAGE_RECIPE[ResourceType.GOLD] * amount
+        energy_needed = GOLD_PACKAGE_RECIPE["energy"] * amount * self.scale
+
+        if storage.contents.get(ResourceType.RAW_ORE, 0) < ore_needed:
+            return False
+        if storage.contents.get(ResourceType.GOLD, 0) < gold_needed:
+            return False
+        if not robot.consume_energy(energy_needed):
+            return False
+
+        # Zużyj zasoby
+        storage.contents[ResourceType.RAW_ORE] -= ore_needed
+        storage.contents[ResourceType.GOLD] -= gold_needed
+
+        # Usuń puste wpisy
+        if storage.contents[ResourceType.RAW_ORE] <= 0:
+            del storage.contents[ResourceType.RAW_ORE]
+        if storage.contents[ResourceType.GOLD] <= 0:
+            del storage.contents[ResourceType.GOLD]
+
+        # Umieść paczkę złota na kafelku
+        robot.world.place_gold_package(robot.position, gold_needed, ore_needed)
+
+        print(f"[Tick {robot.world.tick}] DEPOSITED {amount} gold package(s) at {robot.position}")
+        return True
 

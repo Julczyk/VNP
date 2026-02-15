@@ -204,9 +204,42 @@ class World:
         robot.position = (x, y)
 
     def scan_area(self, position, radius, target_res=None):
+        """
+        Skanuje obszar wokół pozycji w poszukiwaniu zasobów.
+
+        Args:
+            position: Tuple (x, y) pozycji skanowania
+            radius: Promień skanowania
+            target_res: Opcjonalny typ zasobu do szukania (int 0-7, mapowany przez SCANNER_RESOURCE_MAP)
+
+        Returns:
+            Dict z kluczami:
+            - resource_type: typ zasobu (0=brak, 1=RAW_ORE, 2=IRON, 3=GOLD, itd.)
+            - dir: kierunek do zasobu (0-3) lub -1 jeśli nie znaleziono
+            - dist: dystans Manhattan do zasobu
+        """
+        from config import SCANNER_RESOURCE_MAP
+
+        # Mapowanie typów zasobów na ID dla programu SRAPL (odwrotne do SCANNER_RESOURCE_MAP)
+        RESOURCE_ID_MAP = {
+            ResourceType.RAW_ORE: 1,
+            ResourceType.IRON: 2,
+            ResourceType.GOLD: 3,
+            ResourceType.COAL: 4,
+            ResourceType.URANIUM: 5,
+            ResourceType.GOLD_PACKAGE: 6,
+            ResourceType.PROCESSED_METAL: 7,
+        }
+
+        # Konwersja int -> ResourceType dla filtrowania
+        target_resource_type = None
+        if target_res is not None and target_res > 0:
+            target_resource_type = SCANNER_RESOURCE_MAP.get(int(target_res))
+
         x0, y0 = position
         best_dist = None
         best_dir = 0
+        best_resource = 0  # Typ zasobu (0=brak)
 
         for dy in range(-int(radius), int(radius)+1):
             for dx in range(-int(radius), int(radius)+1):
@@ -220,6 +253,16 @@ class World:
                 if not tile.materials:
                     continue
 
+                # Filtrowanie po typie zasobu
+                if target_resource_type is not None:
+                    # Szukamy konkretnego typu zasobu
+                    if target_resource_type not in tile.materials:
+                        continue
+                    res_type = target_resource_type
+                else:
+                    # Brak filtrowania - pobierz pierwszy dostępny zasób
+                    res_type = next(iter(tile.materials.keys()))
+
                 dist = abs(dx) + abs(dy)
                 if best_dist is None or dist < best_dist:
                     best_dist = dist
@@ -228,11 +271,27 @@ class World:
                         best_dir = 1 if dx > 0 else 3
                     else:
                         best_dir = 0 if dy > 0 else 2
+                    # Mapuj typ zasobu na ID
+                    best_resource = RESOURCE_ID_MAP.get(res_type, 0)
 
         if best_dist is None:
-            return {"dir": -1, "dist": 0}
+            return {"resource_type": 0, "dir": -1, "dist": 0}
 
-        return {"dir": best_dir, "dist": best_dist}
+        return {"resource_type": best_resource, "dir": best_dir, "dist": best_dist}
+
+    def place_gold_package(self, position, gold_amount, ore_amount):
+        """
+        Dodaje GOLD_PACKAGE do materiałów kafelka.
+
+        Args:
+            position: Tuple (x, y) pozycji
+            gold_amount: Ilość złota użytego do paczki
+            ore_amount: Ilość rudy użytej do paczki (opakowanie)
+        """
+        x, y = position
+        tile = self.map[y, x]
+        tile.materials[ResourceType.GOLD_PACKAGE] = \
+            tile.materials.get(ResourceType.GOLD_PACKAGE, 0) + gold_amount
 
     def get_tile(self, position):
         x, y = position

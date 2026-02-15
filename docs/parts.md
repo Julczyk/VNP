@@ -20,8 +20,12 @@ Każde i w wymienionych f_i jest inne.
 	- Funkcja(?) f_i - nie zużywa czasu. Zwraca ilość energii
 	- Skala - liniowo zwiększa masę oraz pojemność. Można pokusić się o większe niż liniowe zwiększenie pojemności
 - Skaner: Szuka surowców. W najprostszym wydaniu:
-	- Funkcja f_i (pow, ?res): zapisuje do pamięci kierunek i odległość od najbliższego wystąpienia surowca (jeśli wiele surowców - surowca res).
-	- Skala - zwiększa zasięg i/lub zmniejsza czas potrzebny na przeprowadzenie skanowania. Zwiększa oczywiście też masę i zużycie energii.
+	- Funkcja f_2(pow, ?res): zapisuje do pamięci typ zasobu, kierunek i odległość od najbliższego wystąpienia surowca
+	- Layout pamięci po skanowaniu:
+		- X[1] = typ zasobu (0=brak, 1=IRON, 2=GOLD, 3=inne)
+		- X[2] = kierunek (0-3, lub -1 jeśli nie znaleziono)
+		- X[3] = dystans Manhattan (lub -1 jeśli nie znaleziono)
+	- Skala - zwiększa zasięg (radius = scale * 5) i zużycie energii.
 - Magazyn (lub rama): Decyduje o udźwigu, przechowuje ładunek.
 	- Ładunek: Surowce, Przetworzone surowce gotowe części
 	- Posiada metodę, która jest wywoływana przez inne części zwraca informację, czy jest wystarczająco dużo "miejsca" na wynik operacji innych części - tj. wydobywania, przetwarzania surowców i/lub robienia z nich części. (W przypadku niedostępności miejsca anuluje operację robienia części, wypisuje na log komunikat). W przypadku wydobycia/przetwarzania - ucina liczbę przechowywanych do max.

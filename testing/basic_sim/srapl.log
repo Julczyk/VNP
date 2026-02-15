@@ -95,3 +95,69 @@ INFO:SRAPL:Step result: FunctionID.SCAN, args=[1.0, 1.0]
 INFO:SRAPL:Step result: FunctionID.SCAN, args=[1.0, 1.0]
 INFO:SRAPL:Step result: FunctionID.SCAN, args=[1.0, 1.0]
 INFO:SRAPL:Step result: FunctionID.SCAN, args=[1.0, 1.0]
+INFO:STATS:=== STATS REPORT (death) ===
+Automaton ID: 1
+Lifetime: 57 ticks (born: 0)
+Steps executed: 58
+Distance traveled: 7.0
+Offspring: 12
+Energy: produced=140.0, consumed=283.01, balance=-143.01
+Resources collected: 14 total
+  - RAW_ORE: 14
+Parts produced: 0 total
+==============================
+INFO:STATS:=== STATS REPORT (death) ===
+Automaton ID: 3
+Lifetime: 92 ticks (born: 0)
+Steps executed: 93
+Distance traveled: 24.0
+Offspring: 9
+Energy: produced=230.0, consumed=363.66, balance=-133.66
+Resources collected: 11 total
+  - RAW_ORE: 11
+Parts produced: 0 total
+==============================
+INFO:SRAPL:Interpreter initialized, code length: 404 chars
+INFO:SRAPL:Created new execution generator
+INFO:SRAPL:Step result: FunctionID.SCAN, args=[1.0, 1.0]
+INFO:SRAPL:Step result: FunctionID.SCAN, args=[1.0, 1.0]
+INFO:SRAPL:Step result: FunctionID.SCAN, args=[1.0, 1.0]
+INFO:SRAPL:Step result: FunctionID.SCAN, args=[1.0, 1.0]
+INFO:SRAPL:Step result: FunctionID.SCAN, args=[1.0, 1.0]
+INFO:SRAPL:Step result: FunctionID.SCAN, args=[1.0, 1.0]
+INFO:SRAPL:Interpreter initialized, code length: 411 chars
+INFO:SRAPL:Created new execution generator
+INFO:SRAPL:Step result: FunctionID.SCAN, args=[1.0, 1.0]
+INFO:SRAPL:Step result: FunctionID.SCAN, args=[1.0, 1.0]
+INFO:SRAPL:Step result: FunctionID.SCAN, args=[1.0, 1.0]
+INFO:SRAPL:Step result: FunctionID.SCAN, args=[1.0, 1.0]
+INFO:SRAPL:Step result: FunctionID.SCAN, args=[1.0, 1.0]
+INFO:SRAPL:Step result: FunctionID.SCAN, args=[1.0, 1.0]
+INFO:SRAPL:Step result: FunctionID.SCAN, args=[1.0, 1.0]
+INFO:SRAPL:Step result: FunctionID.SCAN, args=[1.0, 1.0]
+INFO:SRAPL:Step result: FunctionID.SCAN, args=[1.0, 1.0]
+INFO:SRAPL:Step result: FunctionID.SCAN, args=[1.0, 1.0]
+INFO:SRAPL:Step result: FunctionID.SCAN, args=[1.0, 1.0]
+INFO:SRAPL:Step result: FunctionID.SCAN, args=[1.0, 1.0]
+INFO:STATS:=== STATS REPORT (death) ===
+Automaton ID: 1
+Lifetime: 58 ticks (born: 0)
+Steps executed: 59
+Distance traveled: 7.0
+Offspring: 11
+Energy: produced=140.0, consumed=282.92, balance=-142.92
+Resources collected: 14 total
+  - RAW_ORE: 14
+Parts produced: 0 total
+==============================
+INFO:STATS:=== STATS REPORT (death) ===
+Automaton ID: 6
+Lifetime: 55 ticks (born: 20)
+Steps executed: 55
+Distance traveled: 0.0
+Offspring: 11
+Energy: produced=130.0, consumed=266.33, balance=-136.33
+Resources collected: 12 total
+  - RAW_ORE: 12
+Parts produced: 0 total
+==============================

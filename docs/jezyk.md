@@ -11,9 +11,10 @@ Na potrzeby symulacji pamięć każdego automatu (niezależnie od budowy) stanow
 
 ### Zarezerwowane indeksy pamięci
 - **X[0]** - energia automatu (0.0 - 1.0, proporcja do maksymalnej energii)
-- **X[1]** - kierunek do najbliższego zasobu (wynik skanera, 0-3 lub -1 jeśli nie znaleziono)
-- **X[2]** - dystans do najbliższego zasobu (wynik skanera, lub -1 jeśli nie znaleziono)
-- **X[3-63]** - dostępne dla programu użytkownika
+- **X[1]** - typ zasobu (wynik skanera: 0=brak, 1=IRON, 2=GOLD, 3=inne)
+- **X[2]** - kierunek do najbliższego zasobu (wynik skanera, 0-3 lub -1 jeśli nie znaleziono)
+- **X[3]** - dystans do najbliższego zasobu (wynik skanera, lub -1 jeśli nie znaleziono)
+- **X[4-63]** - dostępne dla programu użytkownika
 
 ## Schemat działania:
 1. Automat w każdym kroku uruchamia lub kontynuuje swój program. Program ma do dyspozycji pamięć automatu i za pomocą wyrażeń może go dowolnie modyfikować.
@@ -84,8 +85,9 @@ $PARTS:
 $PROGRAMM
 # Konwencja pamieci:
 #   X[0] = energia (0.0-1.0)
-#   X[1] = kierunek do zasobu (wynik skanera)
-#   X[2] = dystans do zasobu (wynik skanera)
+#   X[1] = typ zasobu (0=brak, 1=IRON, 2=GOLD, 3=inne)
+#   X[2] = kierunek do zasobu (wynik skanera)
+#   X[3] = dystans do zasobu (wynik skanera)
 
 # Glowna petla
 {
@@ -94,21 +96,21 @@ $PROGRAMM
         f_0();
     }
 
-    # Skanuj otoczenie (zapisuje do X[1] i X[2])
+    # Skanuj otoczenie (zapisuje do X[1], X[2], X[3])
     f_2(1.0, 1.0);
 
     # Jesli zasob blisko (dystans <= 1) - zbieraj
-    IF (1.5 - X[2]) {
+    IF (1.5 - X[3]) {
         f_7(1.0);
     }
 
     # Jesli zasob daleko - idz w kierunku
-    IF (X[2] - 1.5) {
-        f_1(X[1], 1.0);
+    IF (X[3] - 1.5) {
+        f_1(X[2], 1.0);
     }
 
     # Jesli nie znaleziono (dystans < 0) - losowy ruch
-    IF (0.0 - X[2]) {
+    IF (0.0 - X[3]) {
         f_1(0.0, 1.0);
     }
 

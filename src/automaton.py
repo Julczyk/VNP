@@ -228,11 +228,16 @@ class Automaton:
     
     def reproduce(self):
         """
-        Tworzy nowy automat i usuwa zużyte części z magazynu.
+        Tworzy nowy automat z mutacjami i usuwa zużyte części z magazynu.
         Zakładamy, że can_reproduce() == True.
+
+        Mutacje:
+        - Program SRAPL: mutacje na poziomie AST (stałe, indeksy, zamiana instrukcji)
+        - Genom części: skala ±10%
         """
         from config import PART_RESOURCE_MAP
         from world.tile import WaterTile
+        from genetics import GeneticsEngine
         import random
 
         if self.world.tick - self.birth_tick < 20:
@@ -240,7 +245,7 @@ class Automaton:
 
         if self.energy < REPRODUCTION_ENERGY_COST:
             return None
-        
+
         MAX_LOCAL_DENSITY = 6
 
         if self.world.count_automata_near(self.position, radius=1) > MAX_LOCAL_DENSITY:
@@ -299,10 +304,24 @@ class Automaton:
 
         self.consume_energy(REPRODUCTION_ENERGY_COST)
 
-        # --- STWORZENIE DZIECKA ---
+        # --- MUTACJA PROGRAMU ---
+        genetics = GeneticsEngine(mutation_rate=0.1)
+        mutated_program = genetics.mutate_program(self.interpreter.program)
+
+        # --- MUTACJA GENOMU CZĘŚCI (skala ±10%) ---
+        mutated_genome = []
+        for part_cls, scale in self.parts_genome:
+            if random.random() < 0.1:  # 10% szansa na mutację każdej części
+                mutation_factor = random.uniform(0.9, 1.1)
+                new_scale = max(0.1, scale * mutation_factor)
+                mutated_genome.append((part_cls, new_scale))
+            else:
+                mutated_genome.append((part_cls, scale))
+
+        # --- STWORZENIE DZIECKA Z MUTACJAMI ---
         child = Automaton(
-            program_code=self.interpreter.program,
-            parts_genome=self.parts_genome,
+            program_code=mutated_program,
+            parts_genome=mutated_genome,
             world=self.world,
             position=spawn_pos
         )
