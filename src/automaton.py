@@ -68,10 +68,10 @@ class Automaton:
         2. Uruchom funkcję części.
         3. Pobierz pasywną energię / koszta.
         """
-        print(
-            f"[Tick {self.world.tick}] Energy={self.energy:.1f} "
-            f"Storage={[(s.contents) for s in self.get_storage_parts()]}"
-        )
+        # print(
+        #     f"[Tick {self.world.tick}] Energy={self.energy:.1f} "
+        #     f"Storage={[(s.contents) for s in self.get_storage_parts()]}"
+        # )
 
         if not self.alive:
             return
@@ -138,9 +138,9 @@ class Automaton:
                         adder(child)
                         break
 
-        print(
-            f"[Tick {self.world.tick}] can_reproduce={self.can_reproduce()}"
-        )
+        # print(
+        #     f"[Tick {self.world.tick}] can_reproduce={self.can_reproduce()}"
+        # )
 
         # Okresowe raportowanie statystyk
         if stats_manager.should_report(self.stats, self.world.tick):
@@ -164,15 +164,15 @@ class Automaton:
             if a != self and abs(a.position[0] - self.position[0]) <= 1 and abs(a.position[1] - self.position[1]) <= 1
         ]
         if not neighbors:
-            print(f"[Tick {self.world.tick}] Automaton at {self.position} has no neighbors to share resources with.")
+            # print(f"[Tick {self.world.tick}] Automaton at {self.position} has no neighbors to share resources with.")
             return
 
         storages = self.get_storage_parts()
         if not storages:
-            print(f"[Tick {self.world.tick}] Automaton at {self.position} has no storage parts.")
+            # print(f"[Tick {self.world.tick}] Automaton at {self.position} has no storage parts.")
             return
 
-        print(f"[Tick {self.world.tick}] Automaton at {self.position} is attempting to share resources with {len(neighbors)} neighbors.")
+        # print(f"[Tick {self.world.tick}] Automaton at {self.position} is attempting to share resources with {len(neighbors)} neighbors.")
 
         for res_type in ResourceType:
             total_amount = sum(storage.contents.get(res_type, 0) for storage in storages)
@@ -185,7 +185,7 @@ class Automaton:
                 if neighbor_amount < avg_amount and total_amount > avg_amount:
                     transfer = min(total_amount - avg_amount, avg_amount - neighbor_amount, 1)  # max 1 jednostka na transfer
 
-                    print(f"Sharing {transfer} of {res_type.name} from {self.position} to {neighbor.position}")
+                    # print(f"Sharing {transfer} of {res_type.name} from {self.position} to {neighbor.position}")
 
                     # Usuń z własnych magazynów
                     remaining = transfer

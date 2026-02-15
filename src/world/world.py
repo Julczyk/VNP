@@ -22,12 +22,12 @@ class World:
         self.wrecks = []
         self.tick = 0
         self.generate_map()
-        print("=== WORLD INIT ===")
-        for y in range(self.height):
-            for x in range(self.width):
-                tile = self.get_tile((x, y))
-                if tile.materials:
-                    print(f"RESOURCE AT {(x,y)} -> {tile.materials}")
+        # print("=== WORLD INIT ===")
+        # for y in range(self.height):
+        #     for x in range(self.width):
+        #         tile = self.get_tile((x, y))
+        #         if tile.materials:
+        #             print(f"RESOURCE AT {(x,y)} -> {tile.materials}")
 
     
     def generate_map(self):
@@ -246,7 +246,7 @@ class World:
         for automaton in list(self.automata):
             automaton.update()
         self.tick += 1
-        print("WORLD UPDATE", len(self.automata))
+        # print("WORLD UPDATE", len(self.automata))
 
     def add_wreck(self, position, resources):
         x, y = position

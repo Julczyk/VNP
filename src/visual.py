@@ -253,8 +253,8 @@ class WorldView(arcade.Window):
 
     def on_update(self, delta_time: float):
         if not self.paused:
-            if self.tick % 5 == 0:      # <-- REGULUJ TUTAJ predkosc symulacji
-                self.world.update()
+            # Update every frame for smoother/faster simulation
+            self.world.update()
             self.tick += 1
 
     def on_key_press(self, symbol, modifiers):
