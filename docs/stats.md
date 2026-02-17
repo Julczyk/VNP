@@ -10,6 +10,9 @@ Dla każdego automatu rejestrowane są:
 
 | Statystyka | Opis |
 |------------|------|
+| `automaton_id` | Unikalny identyfikator automatu |
+| `birth_tick` | Tick narodzin |
+| `parent_id` | ID rodzica (None dla pierwszych automatów) |
 | `steps_executed` | Liczba wykonanych kroków symulacji |
 | `distance_traveled` | Łączna przebyta odległość |
 | `resources_collected` | Zebrane zasoby (per typ) |
@@ -17,6 +20,8 @@ Dla każdego automatu rejestrowane są:
 | `offspring_count` | Liczba potomków |
 | `energy_produced` | Wyprodukowana energia (IDLE + PowerGenerator) |
 | `energy_consumed` | Zużyta energia |
+| `gold_fitness_reported` | Czy gold_fitness został zaraportowany |
+| `gold_fitness_report_tick` | Tick raportowania gold_fitness |
 
 ## Konfiguracja
 
@@ -27,6 +32,10 @@ W `src/config.py`:
 # 0 = tylko przy śmierci
 # n > 0 = co n kroków + przy śmierci
 STATS_REPORT_INTERVAL = 0
+
+# Gold Fitness
+GOLD_FITNESS_TIME = 200      # Ticks po których obliczany jest gold_fitness
+RANDOM_DEATH_CHANCE = 0.01   # 1% szansa na losową śmierć per tick
 ```
 
 ## Użycie
@@ -88,9 +97,81 @@ Parts produced: 0 total
 ==============================
 ```
 
+## Lineage Tracking
+
+System śledzi relacje rodzic-dziecko między automatami.
+
+### Śledzenie potomków
+
+```python
+from stats import stats_manager
+
+# Pobierz wszystkich potomków automatu (rekurencyjnie)
+descendants = stats_manager.get_descendants(automaton_id=1)
+print(f"Potomkowie: {descendants}")
+
+# Pobierz statystyki po ID
+stats = stats_manager.get_stats_by_id(automaton_id=2)
+print(f"Rodzic: {stats.parent_id}")
+```
+
+### Reset dla nowych iteracji
+
+```python
+from stats import stats_manager
+
+# Reset wszystkich danych (dla nowych testów)
+stats_manager.reset()
+```
+
+## Gold Fitness
+
+Gold fitness to miara sukcesu ewolucyjnego: suma złota zebranego przez automata i wszystkich jego potomków.
+
+### Obliczanie gold_fitness
+
+```python
+from stats import stats_manager
+
+# Oblicz gold_fitness dla automatu
+gold_fitness = stats_manager.calculate_gold_fitness(automaton_id=1)
+print(f"Gold fitness: {gold_fitness}")
+```
+
+### Automatyczne raportowanie
+
+Gold fitness jest automatycznie raportowany:
+1. Po `GOLD_FITNESS_TIME` tickach od narodzin automatu
+2. Przy śmierci automatu (jeśli nie był wcześniej raportowany)
+
+Format logu:
+```
+GOLD_FITNESS: automaton_id=1, gold_fitness=14, tick=200
+```
+
+### Losowa śmierć
+
+Parametr `RANDOM_DEATH_CHANCE` wprowadza losową śmierć (1% per tick domyślnie), co:
+- Wymusza rotację populacji
+- Zapobiega "nieśmiertelnym" automatom blokującym ewolucję
+- Symuluje wypadki i nieprzewidziane zdarzenia
+
 ## Testowanie
 
 ```bash
 source .venv/bin/activate
 python testing/test_stats.py
+
+# Test lineage tracking
+python -c "
+from stats import stats_manager
+from config import ResourceType
+
+stats_manager.reset()
+parent = stats_manager.create_stats(0)
+child = stats_manager.create_stats(10, parent_id=parent.automaton_id)
+parent.record_resource_collected(ResourceType.GOLD, 5)
+child.record_resource_collected(ResourceType.GOLD, 3)
+print(f'Gold fitness: {stats_manager.calculate_gold_fitness(parent.automaton_id)}')
+"
 ```

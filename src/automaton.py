@@ -1,12 +1,13 @@
 from parts import Part, Engine, Scanner, Storage
-from config import FunctionID, ResourceType, STATS_REPORT_INTERVAL, get_function_to_part_map
+from config import FunctionID, ResourceType, STATS_REPORT_INTERVAL, get_function_to_part_map, GOLD_FITNESS_TIME, RANDOM_DEATH_CHANCE
 from srapl_interpreter import SRAPLInterpreter as Interpreter
 from stats import stats_manager, AutomatonStats
+import random
 
 REPRODUCTION_ENERGY_COST = 10
 
 class Automaton:
-    def __init__(self, program_code, parts_genome, world, position, debug_interpreter=False):
+    def __init__(self, program_code, parts_genome, world, position, debug_interpreter=False, parent_id=None):
         self.world = world
         self.position = position
         self.alive = True
@@ -27,7 +28,7 @@ class Automaton:
         self.energy = 100.0  # Startowa energia
 
         # System statystyk
-        self.stats: AutomatonStats = stats_manager.create_stats(self.birth_tick)
+        self.stats: AutomatonStats = stats_manager.create_stats(self.birth_tick, parent_id=parent_id)
 
     def _assemble_robot(self, genome):
         """Tworzy instancje części na podstawie genomu."""
@@ -78,6 +79,22 @@ class Automaton:
 
         # Rejestruj krok w statystykach
         self.stats.record_step()
+
+        # Losowa śmierć (symuluje "wypadki" i wymusza rotację populacji)
+        if RANDOM_DEATH_CHANCE > 0 and random.random() < RANDOM_DEATH_CHANCE:
+            self.die()
+            return
+
+        # Raportowanie gold_fitness po GOLD_FITNESS_TIME tickach od narodzin
+        automaton_age = self.world.tick - self.birth_tick
+        if not self.stats.gold_fitness_reported and automaton_age >= GOLD_FITNESS_TIME:
+            gold_fitness = stats_manager.calculate_gold_fitness(self.stats.automaton_id)
+            self.stats.gold_fitness_reported = True
+            self.stats.gold_fitness_report_tick = self.world.tick
+            # Log gold fitness report
+            import logging
+            logger = logging.getLogger('STATS')
+            logger.info(f"GOLD_FITNESS: automaton_id={self.stats.automaton_id}, gold_fitness={gold_fitness}, tick={self.world.tick}")
 
         # Zapamiętaj pozycję przed ruchem (do obliczenia dystansu)
         old_position = self.position
@@ -323,7 +340,8 @@ class Automaton:
             program_code=mutated_program,
             parts_genome=mutated_genome,
             world=self.world,
-            position=spawn_pos
+            position=spawn_pos,
+            parent_id=self.stats.automaton_id
         )
 
         self.children_count += 1
@@ -336,6 +354,15 @@ class Automaton:
             return
 
         self.alive = False
+
+        # Oblicz i zaraportuj gold_fitness jeśli nie był jeszcze raportowany
+        if not self.stats.gold_fitness_reported:
+            gold_fitness = stats_manager.calculate_gold_fitness(self.stats.automaton_id)
+            self.stats.gold_fitness_reported = True
+            self.stats.gold_fitness_report_tick = self.world.tick
+            import logging
+            logger = logging.getLogger('STATS')
+            logger.info(f"GOLD_FITNESS (death): automaton_id={self.stats.automaton_id}, gold_fitness={gold_fitness}, tick={self.world.tick}")
 
         # Raportuj statystyki przy śmierci
         stats_manager.report(self.stats, self.world.tick, "death")

@@ -1,0 +1,116 @@
+$PARTS:
+1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0;
+
+$PROGRAMM
+# ==============================================
+# INTELLIGENT - Inteligentna strategia
+# ==============================================
+# Algorytm:
+# 1. Monitoruj energie i adaptuj zachowanie
+# 2. Wysoka energia (>70%) - agresywna eksploracja
+# 3. Srednia energia (30-70%) - zrownowazony tryb
+# 4. Niska energia (<30%) - tryb przezycia
+# 5. Pamietaj ostatni kierunek dla kontynuacji eksploracji
+#
+# Pamiec:
+#   X[0] = energia (0.0-1.0)
+#   X[1] = typ zasobu (0=brak, 1=IRON, 2=GOLD, 3=inne)
+#   X[2] = kierunek (wynik skanera)
+#   X[3] = dystans (wynik skanera)
+#   X[10] = ostatni kierunek ruchu
+#   X[11] = licznik krokow bez znalezienia zasobu
+#
+# Zabezpieczenia przed idle loop:
+# - Losowa zmiana kierunku co 8 krokow bez zasobu
+# - Zawsze wykonujemy jakas akcje (f_0, f_1, f_2, f_7)
+# ==============================================
+
+# Glowna petla
+{
+    # === TRYB KRYTYCZNY: energia < 20% ===
+    IF (0.2 - X[0]) {
+        # Odpoczywaj natychmiast
+        f_0();
+    }
+
+    # === TRYB NISKIEJ ENERGII: 20-40% ===
+    IF (X[0] - 0.2) {
+        IF (0.4 - X[0]) {
+            # Skanuj
+            f_2(1.0, 1.0);
+
+            # Zbieraj tylko jesli bardzo blisko
+            IF (1.5 - X[3]) {
+                f_7(1.0);
+            }
+
+            # W przeciwnym razie odpoczywaj
+            f_0();
+        }
+    }
+
+    # === TRYB NORMALNY: 40-70% ===
+    IF (X[0] - 0.4) {
+        IF (0.7 - X[0]) {
+            f_2(1.0, 1.0);
+
+            # Zbieraj jesli blisko
+            IF (1.5 - X[3]) {
+                X[11] = 0.0;
+                f_7(1.0);
+            }
+
+            # Idz do zasobu jesli srednia odleglosc
+            IF (X[3] - 1.5) {
+                IF (8.0 - X[3]) {
+                    X[11] = 0.0;
+                    X[10] = X[2];
+                    f_1(X[2], 1.0);
+                }
+            }
+
+            # Nie znaleziono lub za daleko - kontynuuj ostatni kierunek
+            X[11] = X[11] + 1.0;
+            IF (8.0 - X[11]) {
+                f_1(X[10], 1.0);
+            }
+            # Zmien kierunek co 8 krokow
+            IF (X[11] - 8.0) {
+                X[11] = 0.0;
+                X[10] = X[10] + 1.0;
+                f_1(X[10], 1.0);
+            }
+        }
+    }
+
+    # === TRYB AGRESYWNY: energia > 70% ===
+    IF (X[0] - 0.7) {
+        f_2(1.0, 1.0);
+
+        # Zbieraj
+        IF (1.5 - X[3]) {
+            X[11] = 0.0;
+            f_7(1.0);
+        }
+
+        # Szybko idz do zasobu
+        IF (X[3] - 1.5) {
+            X[11] = 0.0;
+            X[10] = X[2];
+            f_1(X[2], 2.0);
+        }
+
+        # Nie znaleziono - eksploruj szybko
+        X[11] = X[11] + 1.0;
+        IF (6.0 - X[11]) {
+            f_1(X[10], 2.0);
+        }
+        IF (X[11] - 6.0) {
+            X[11] = 0.0;
+            X[10] = X[10] + 1.0;
+            f_1(X[10], 2.0);
+        }
+    }
+
+    REDO;
+}

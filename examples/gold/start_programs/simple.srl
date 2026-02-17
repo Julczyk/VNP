@@ -1,0 +1,55 @@
+$PARTS:
+1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0;
+
+$PROGRAMM
+# ==============================================
+# SIMPLE - Najprostsza strategia
+# ==============================================
+# Algorytm:
+# 1. Skanuj
+# 2. Zbieraj jesli blisko
+# 3. Idz do zasobu jesli daleko
+# 4. Eksploruj jesli nie znaleziono
+# 5. Co jakis czas przetwarzaj i produkuj
+#
+# Pamiec:
+#   X[0] = energia (0.0-1.0)
+#   X[1] = typ zasobu
+#   X[2] = kierunek
+#   X[3] = dystans
+#   X[10] = kierunek eksploracji
+#   X[11] = licznik zbieran
+# ==============================================
+
+{
+    # Skanuj
+    f_2(1.0, 1.0);
+
+    # Jesli blisko - zbieraj
+    IF (1.5 - X[3]) {
+        X[11] = X[11] + 1.0;
+        # Co 15 zebran - przetworz i produkuj
+        IF (X[11] - 14.5) {
+            X[11] = 0.0;
+            f_4(1.0);
+            f_5(6.0);
+        }
+        f_7(1.0);
+    }
+
+    # Jesli daleko - idz
+    IF (X[3] - 1.5) {
+        f_1(X[2], 1.0);
+    }
+
+    # Jesli nie znaleziono - zmien kierunek i idz
+    IF (0.0 - X[3]) {
+        X[10] = X[10] + 1.0;
+        IF (X[10] - 3.5) {
+            X[10] = 0.0;
+        }
+        f_1(X[10], 1.0);
+    }
+
+    REDO;
+}

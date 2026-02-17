@@ -84,10 +84,11 @@ for part_cls, scale in self.parts_genome:
     else:
         mutated_genome.append((part_cls, scale))
 
-# Tworzenie dziecka z mutacjami
+# Tworzenie dziecka z mutacjami (z parent_id dla lineage tracking)
 child = Automaton(
     program_code=mutated_program,
     parts_genome=mutated_genome,
+    parent_id=self.stats.automaton_id,
     ...
 )
 ```
@@ -138,4 +139,62 @@ engine = GeneticsEngine(mutation_rate=0.2)
 mutated = engine.mutate_program(code)
 print(mutated)
 "
+```
+
+## Gold Fitness Evolution
+
+System ewolucji wykorzystujący gold_fitness jako kryterium selekcji.
+
+### Koncepcja
+
+Gold fitness = suma złota zebranego przez automata + wszystkich jego potomków.
+
+Ta miara faworyzuje automaty, które:
+1. Zbierają złoto efektywnie
+2. Reprodukują się (przekazują geny)
+3. Mają potomstwo, które również zbiera złoto
+
+### Uruchomienie ewolucji
+
+```bash
+python testing/genetics_tests_gold/run_gold_evolution.py \
+  -i testing/genetics_tests_gold/start.srl \
+  -k 10 \   # 10 iteracji
+  -t 1000 \ # 1000 ticków per iteracja
+  -n 5      # 5 automatów w populacji
+```
+
+### Algorytm
+
+1. **Inicjalizacja**: n kopii programu startowego
+2. **Symulacja**: Uruchom symulację przez t ticków
+3. **Ewaluacja**: Oblicz gold_fitness dla każdego startowego automatu
+4. **Selekcja**: Wybierz n najlepszych programów
+5. **Mutacja**: Zastosuj mutacje do wybranych programów
+6. **Powtórz**: Wróć do kroku 2 (k iteracji)
+
+### Parametry konfiguracyjne
+
+W `src/config.py`:
+
+```python
+GOLD_FITNESS_TIME = 200      # Po ilu tickach raportować gold_fitness
+RANDOM_DEATH_CHANCE = 0.01   # Szansa na losową śmierć (1% per tick)
+```
+
+### Wyniki
+
+Skrypt zapisuje:
+- `evolution_history.json` - pełna historia wszystkich iteracji
+- `final_report.csv` - podsumowanie (avg/max/min gold_fitness per iteracja)
+- `best_programs/` - najlepsze programy z ostatniej iteracji
+
+### Przykładowe wyjście CSV
+
+```csv
+iteration,avg_gold_fitness,max_gold_fitness,min_gold_fitness,total_automata
+1,2.40,5,0,47
+2,3.80,8,1,52
+3,5.20,12,2,61
+...
 ```

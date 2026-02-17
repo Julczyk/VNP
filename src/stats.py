@@ -27,6 +27,11 @@ class AutomatonStats:
     # Identyfikacja
     automaton_id: int = 0
     birth_tick: int = 0
+    parent_id: Optional[int] = None
+
+    # Gold fitness tracking
+    gold_fitness_reported: bool = False
+    gold_fitness_report_tick: Optional[int] = None
 
     # Liczniki podstawowe
     steps_executed: int = 0
@@ -145,16 +150,73 @@ class StatsManager:
     def __init__(self):
         self._next_id = 1
         self._all_reports: list[dict] = []
+        self._lineage: dict[int, int] = {}  # child_id -> parent_id
+        self._stats_registry: dict[int, AutomatonStats] = {}  # automaton_id -> stats
 
-    def create_stats(self, birth_tick: int) -> AutomatonStats:
+    def reset(self):
+        """Reset manager dla nowych iteracji testów."""
+        self._next_id = 1
+        self._all_reports = []
+        self._lineage = {}
+        self._stats_registry = {}
+
+    def create_stats(self, birth_tick: int, parent_id: Optional[int] = None) -> AutomatonStats:
         """Tworzy nowy obiekt statystyk dla automatu."""
         stats = AutomatonStats(
             automaton_id=self._next_id,
             birth_tick=birth_tick,
+            parent_id=parent_id,
             last_report_tick=birth_tick
         )
+
+        # Rejestruj w lineage i registry
+        if parent_id is not None:
+            self._lineage[self._next_id] = parent_id
+        self._stats_registry[self._next_id] = stats
+
         self._next_id += 1
         return stats
+
+    def get_stats_by_id(self, automaton_id: int) -> Optional[AutomatonStats]:
+        """Pobiera statystyki automatu po ID."""
+        return self._stats_registry.get(automaton_id)
+
+    def get_descendants(self, automaton_id: int) -> list[int]:
+        """Zwraca listę wszystkich potomków automatu (rekurencyjnie)."""
+        descendants = []
+
+        # Znajdź bezpośrednich potomków
+        direct_children = [
+            child_id for child_id, parent_id in self._lineage.items()
+            if parent_id == automaton_id
+        ]
+
+        # Rekurencyjnie dodaj potomków potomków
+        for child_id in direct_children:
+            descendants.append(child_id)
+            descendants.extend(self.get_descendants(child_id))
+
+        return descendants
+
+    def calculate_gold_fitness(self, automaton_id: int) -> int:
+        """Oblicza gold_fitness: suma złota zebrana przez automata i wszystkich jego potomków."""
+        from config import ResourceType
+
+        total_gold = 0
+
+        # Złoto zebrane przez samego automata
+        stats = self.get_stats_by_id(automaton_id)
+        if stats:
+            total_gold += stats.resources_collected.get(ResourceType.GOLD, 0)
+
+        # Złoto zebrane przez wszystkich potomków
+        descendants = self.get_descendants(automaton_id)
+        for desc_id in descendants:
+            desc_stats = self.get_stats_by_id(desc_id)
+            if desc_stats:
+                total_gold += desc_stats.resources_collected.get(ResourceType.GOLD, 0)
+
+        return total_gold
 
     def should_report(self, stats: AutomatonStats, current_tick: int) -> bool:
         """Sprawdza czy należy raportować statystyki."""

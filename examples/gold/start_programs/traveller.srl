@@ -1,0 +1,79 @@
+$PARTS:
+1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0;
+
+$PROGRAMM
+# ==============================================
+# TRAVELLER - Podruznik
+# ==============================================
+# Algorytm:
+# 1. Duzo eksploracji - szybkie przemieszczanie sie
+# 2. Zbieraj zasoby po drodze
+# 3. Systematyczna eksploracja w roznych kierunkach
+# 4. Zbalansowane podejscie do zlota i replikacji
+#
+# Pamiec:
+#   X[0] = energia (0.0-1.0)
+#   X[1] = typ zasobu (0=brak, 1=IRON, 2=GOLD, 3=inne)
+#   X[2] = kierunek (wynik skanera)
+#   X[3] = dystans (wynik skanera)
+#   X[20] = licznik krokow w jednym kierunku
+#   X[21] = kierunek eksploracji (0-3)
+#   X[22] = faza podrozy (zmienia sie cyklicznie)
+# ==============================================
+
+{
+    # Niska energia - odpoczywaj
+    IF (0.25 - X[0]) {
+        f_0();
+    }
+
+    # Skanuj otoczenie
+    f_2(1.0, 1.0);
+
+    # Jesli zasob blisko (<=1) - zbieraj
+    IF (1.5 - X[3]) {
+        X[20] = 0.0;
+        f_7(1.0);
+    }
+
+    # Jesli znaleziono zasob daleko - idz szybko
+    IF (X[3] - 1.5) {
+        X[20] = 0.0;
+        # Szybki ruch (dist=2)
+        f_1(X[2], 2.0);
+    }
+
+    # Nie znaleziono - eksploruj agresywnie
+    IF (0.0 - X[3]) {
+        X[20] = X[20] + 1.0;
+
+        # Kontynuuj w kierunku eksploracji przez 4 kroki
+        IF (4.5 - X[20]) {
+            # Szybka eksploracja
+            f_1(X[21], 2.0);
+        }
+
+        # Zmien kierunek co 4 kroki
+        IF (X[20] - 4.5) {
+            X[21] = X[21] + 1.0;
+            X[20] = 0.0;
+            X[22] = X[22] + 1.0;
+
+            # Wrap kierunek do 0-3
+            IF (X[21] - 3.5) {
+                X[21] = 0.0;
+            }
+
+            # Co 8 zmian kierunku - dluzsza podroz w jednym kierunku
+            IF (X[22] - 7.5) {
+                X[22] = 0.0;
+                # Pojedynczy dluzszy ruch
+                f_1(X[21], 3.0);
+            }
+
+            f_1(X[21], 2.0);
+        }
+    }
+
+    REDO;
+}

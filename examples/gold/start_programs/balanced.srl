@@ -1,0 +1,86 @@
+$PARTS:
+1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0;
+
+$PROGRAMM
+# ==============================================
+# BALANCED - Zbalansowana strategia
+# ==============================================
+# Algorytm:
+# 1. Priorytet dla zlota gdy energia wysoka
+# 2. Zbieraj zelazo dla replikacji gdy srednia energia
+# 3. Regularnie przetwarzaj rude i produkuj czesci
+# 4. Balans miedzy zbieraniem zlota a reprodukcja
+#
+# Pamiec:
+#   X[0] = energia (0.0-1.0)
+#   X[1] = typ zasobu (0=brak, 1=IRON, 2=GOLD, 3=inne)
+#   X[2] = kierunek (wynik skanera)
+#   X[3] = dystans (wynik skanera)
+#   X[10] = kierunek eksploracji
+#   X[11] = licznik krokow
+#   X[12] = tryb (0=zbieranie, 1=przetwarzanie)
+# ==============================================
+
+{
+    # Krytycznie niska energia - odpoczywaj
+    IF (0.2 - X[0]) {
+        f_0();
+    }
+
+    # Co jakis czas przetworz rude (tryb przetwarzania)
+    IF (X[12] - 0.5) {
+        # Przetworz rude
+        f_4(1.0);
+        # Produkuj czesc (power generator = 6)
+        f_5(6.0);
+        X[12] = 0.0;
+        REDO;
+    }
+
+    # Skanuj
+    f_2(1.0, 1.0);
+
+    # Wysoka energia (>60%) - priorytet zloto
+    IF (X[0] - 0.6) {
+        # Sprawdz czy ZLOTO
+        IF (X[1] - 1.5) {
+            IF (2.5 - X[1]) {
+                IF (1.5 - X[3]) {
+                    f_7(1.0);
+                }
+                IF (X[3] - 1.5) {
+                    f_1(X[2], 1.0);
+                }
+            }
+        }
+    }
+
+    # Srednia energia (20-60%) lub nie znaleziono zlota - zbieraj wszystko
+    # Jesli zasob blisko - zbieraj
+    IF (1.5 - X[3]) {
+        X[11] = X[11] + 1.0;
+        # Co 10 zebran wejdz w tryb przetwarzania
+        IF (X[11] - 9.5) {
+            X[11] = 0.0;
+            X[12] = 1.0;
+        }
+        f_7(1.0);
+    }
+
+    # Jesli zasob daleko - idz do niego
+    IF (X[3] - 1.5) {
+        X[10] = X[2];
+        f_1(X[2], 1.0);
+    }
+
+    # Nie znaleziono - eksploruj
+    IF (0.0 - X[3]) {
+        X[10] = X[10] + 1.0;
+        IF (X[10] - 3.5) {
+            X[10] = 0.0;
+        }
+        f_1(X[10], 1.0);
+    }
+
+    REDO;
+}
