@@ -1,0 +1,33 @@
+$PARTS:
+1.0,
+1.0,
+2.0,
+1.0,
+0.5,
+0.5,
+1.5;
+
+$PROGRAMM
+# ==============================================
+# BASIC GATHERER - Prosty program zbierający zasoby
+# ==============================================
+#
+# Pamięć:
+#   X[0] = energia (0.0-1.0)
+#   X[1] = typ zasobu (0=brak, 1=IRON, 2=GOLD, 3=inne)
+#   X[2] = kierunek do najbliższego zasobu (z skanera)
+#   X[3] = odległość do najbliższego zasobu (z skanera)
+#   X[5] = licznik kroków
+#
+# Funkcje:
+#   f_0() = IDLE (odpoczynek, ładowanie energii)
+#   f_1(dir, dist) = MOVE (ruch)
+#   f_2(pow, res) = SCAN (skanowanie)
+#   f_7(amount) = COLLECT (zbieranie)
+# ==============================================
+
+# Zwiększ licznik kroków
+X[5] = X[5] + 1.0;
+
+# Skanuj otoczenie
+f_2(1.0, 1.0);

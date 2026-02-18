@@ -1,0 +1,38 @@
+$PARTS:
+1.5,
+1.0,
+3.0,
+1.5,
+1.0,
+1.0,
+2.0;
+
+$PROGRAMM
+# ==============================================
+# SMART GATHERER - Inteligentny zbieracz zasobów
+# ==============================================
+#
+# Algorytm:
+# 1. Sprawdź energię - jeśli niska, odpoczywaj
+# 2. Skanuj w poszukiwaniu zasobów
+# 3. Jeśli znaleziono zasób blisko - zbieraj
+# 4. W przeciwnym razie - idź w kierunku zasobu
+#
+# Pamięć:
+#   X[0] = energia (0.0-1.0)
+#   X[1] = typ zasobu (0=brak, 1=IRON, 2=GOLD, 3=inne)
+#   X[2] = kierunek (wynik skanera)
+#   X[3] = odległość (wynik skanera)
+#   X[4] = próg energii
+#   X[5] = próg odległości do zbierania
+# ==============================================
+
+# Inicjalizacja progów (wykonuje się przy każdym restarcie)
+X[4] = 50.0;
+X[5] = 2.0;
+
+# === GŁÓWNA PĘTLA ===
+{
+    # Skanuj otoczenie
+    f_2(1.0, 1.0);
+}

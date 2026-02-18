@@ -1,0 +1,64 @@
+$PARTS:
+2.0, 1.5, 1.5, 1.0, 0.5, 0.5, 1.0;
+
+$PROGRAMM
+# ==============================================
+# TRAVELER - Podruznik
+# ==============================================
+# Algorytm:
+# 1. Skanuj w poszukiwaniu zasobow
+# 2. Jesli blisko - zbieraj
+# 3. Jesli daleko - idz SZYBKO (wiekszy silnik)
+# 4. Eksploruj wiecej terenu gdy brak zasobow
+#
+# Pamiec:
+#   X[0] = energia (0.0-1.0)
+#   X[1] = typ zasobu (0=brak, 1=IRON, 2=GOLD, 3=inne)
+#   X[2] = kierunek (wynik skanera)
+#   X[3] = dystans (wynik skanera)
+#   X[20] = licznik krokow w jednym kierunku
+#   X[21] = kierunek eksploracji (0-3)
+#
+# Idle loop: zmiana kierunku eksploracji co 5 krokow
+# ==============================================
+
+# Glowna petla
+{
+    # Skanuj otoczenie
+    f_2(1.0, 1.0);
+
+    # Jesli zasob blisko (<=1) - zbieraj
+    IF (1.5 - X[3]) {
+        X[20] = 0.0;
+        f_7(1.0);
+    }
+
+    # Jesli znaleziono zasob daleko (>1) - idz szybko (dist=3)
+    IF (X[3] - 1.5) {
+        X[20] = 0.0;
+        f_1(X[2], 3.0);
+    }
+
+    # Jesli nie znaleziono (X[3] < 0) - eksploruj
+    IF (0.0 - X[3]) {
+        X[20] = X[20] + 1.0;
+
+        # Kontynuuj w kierunku eksploracji
+        IF (5.5 - X[20]) {
+            f_1(X[21], 2.0);
+        }
+
+        # Zmien kierunek eksploracji co 5 krokow
+        IF (X[20] - 5.5) {
+            X[21] = X[21] + 1.0;
+            X[20] = 0.0;
+            # Wrap kierunek do zakresu 0-3
+            IF (X[21] - 3.5) {
+                X[21] = 0.0;
+            }
+            f_1(X[21], 2.0);
+        }
+    }
+
+    REDO;
+}

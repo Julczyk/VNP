@@ -1,0 +1,50 @@
+$PARTS:
+1.0, 1.0, 1.5, 1.0, 0.5, 0.5, 1.0;
+
+$PROGRAMM
+# ==============================================
+# SIMPLE - Najprostsza strategia
+# ==============================================
+# Algorytm:
+# Tylko skanuj i zbieraj/idz. Brak optymalizacji.
+# Minimalna logika - dobra jako baseline.
+#
+# Pamiec:
+#   X[0] = energia (0.0-1.0)
+#   X[1] = typ zasobu (0=brak, 1=IRON, 2=GOLD, 3=inne)
+#   X[2] = kierunek (wynik skanera)
+#   X[3] = dystans (wynik skanera)
+#   X[10] = kierunek eksploracji (zmienia sie gdy brak zasobow)
+#
+# Uwaga na idle loop:
+# - Jesli nie znaleziono zasobu, zmieniamy kierunek
+# - Kierunek rotuje: 0 -> 1 -> 2 -> 3 -> 0
+# ==============================================
+
+# Glowna petla
+{
+    # Skanuj
+    f_2(1.0, 1.0);
+
+    # Jesli blisko - zbieraj
+    IF (1.5 - X[3]) {
+        f_7(1.0);
+    }
+
+    # Jesli daleko - idz
+    IF (X[3] - 1.5) {
+        f_1(X[2], 1.0);
+    }
+
+    # Jesli nie znaleziono - zmien kierunek i idz
+    IF (0.0 - X[3]) {
+        X[10] = X[10] + 1.0;
+        # Wrap kierunek do 0-3
+        IF (X[10] - 3.5) {
+            X[10] = 0.0;
+        }
+        f_1(X[10], 1.0);
+    }
+
+    REDO;
+}
