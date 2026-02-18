@@ -109,11 +109,24 @@ class SRAPLExecutionVisitor(SRAPLVisitor):
 
     # --- Instrukcje ---
 
+    def _get_memory_index(self, mem_ref_ctx) -> int:
+        """
+        Pobiera indeks pamięci z kontekstu memoryRef.
+        Obsługuje zarówno INT jak i FLOAT (float jest zaokrąglany do int).
+        """
+        if mem_ref_ctx.INT():
+            return int(mem_ref_ctx.INT().getText())
+        elif mem_ref_ctx.FLOAT():
+            # Konwersja float na int przez zaokrąglenie
+            return int(round(float(mem_ref_ctx.FLOAT().getText())))
+        else:
+            return 0
+
     def visitAssignment(self, ctx: SRAPLParser.AssignmentContext):
         """
         Przypisanie: X[i] = wyrażenie;
         """
-        mem_idx = int(ctx.memoryRef().INT().getText())
+        mem_idx = self._get_memory_index(ctx.memoryRef())
         value = self.visit(ctx.expression())
 
         if 0 <= mem_idx < len(self.memory):
@@ -131,9 +144,12 @@ class SRAPLExecutionVisitor(SRAPLVisitor):
 
         YIELD - zatrzymuje wykonanie i zwraca akcję do symulatora.
         Wywołanie dowolnej funkcji f_n kończy krok czasowy.
+        Obsługuje zarówno f_1 jak i f_3.6 (float jest zaokrąglany do int).
         """
-        func_text = ctx.FUNC_ID().getText()  # "f_1"
-        func_id_val = int(func_text.split('_')[1])
+        func_text = ctx.FUNC_ID().getText()  # "f_1" lub "f_3.6"
+        # Pobierz część po "f_" i konwertuj na int (obsługuje float)
+        func_num_str = func_text.split('_')[1]
+        func_id_val = int(round(float(func_num_str)))
 
         # Ewaluacja argumentów
         args = []
@@ -182,8 +198,8 @@ class SRAPLExecutionVisitor(SRAPLVisitor):
         return float(ctx.value().getText())
 
     def visitVariableExpr(self, ctx: SRAPLParser.VariableExprContext):
-        """Zmienna X[i]."""
-        idx = int(ctx.memoryRef().INT().getText())
+        """Zmienna X[i]. Obsługuje zarówno int jak i float indeksy."""
+        idx = self._get_memory_index(ctx.memoryRef())
         if 0 <= idx < len(self.memory):
             return self.memory[idx]
         self._log(f"Variable ERROR: X[{idx}] out of range, returning 0.0")

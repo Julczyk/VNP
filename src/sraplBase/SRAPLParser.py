@@ -1,4 +1,4 @@
-# Generated from /home/julczyk/Dokumenty/Automaty/VNP/SRAPL.g4 by ANTLR 4.13.2
+# Generated from SRAPL.g4 by ANTLR 4.13.2
 # encoding: utf-8
 from antlr4 import *
 from io import StringIO
@@ -43,7 +43,7 @@ def serializedATN():
         0,0,0,92,93,5,3,0,0,93,94,5,14,0,0,94,95,3,30,15,0,95,96,5,15,0,
         0,96,97,3,14,7,0,97,23,1,0,0,0,98,99,5,4,0,0,99,100,5,20,0,0,100,
         25,1,0,0,0,101,102,5,5,0,0,102,103,5,20,0,0,103,27,1,0,0,0,104,105,
-        5,6,0,0,105,106,5,18,0,0,106,107,5,23,0,0,107,108,5,19,0,0,108,29,
+        5,6,0,0,105,106,5,18,0,0,106,107,7,0,0,0,107,108,5,19,0,0,108,29,
         1,0,0,0,109,110,6,15,-1,0,110,111,5,14,0,0,111,112,3,30,15,0,112,
         113,5,15,0,0,113,117,1,0,0,0,114,117,3,28,14,0,115,117,3,6,3,0,116,
         109,1,0,0,0,116,114,1,0,0,0,116,115,1,0,0,0,117,129,1,0,0,0,118,
@@ -154,14 +154,6 @@ class SRAPLParser ( Parser ):
         def getRuleIndex(self):
             return SRAPLParser.RULE_file
 
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterFile" ):
-                listener.enterFile(self)
-
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitFile" ):
-                listener.exitFile(self)
-
         def accept(self, visitor:ParseTreeVisitor):
             if hasattr( visitor, "visitFile" ):
                 return visitor.visitFile(self)
@@ -211,14 +203,6 @@ class SRAPLParser ( Parser ):
 
         def getRuleIndex(self):
             return SRAPLParser.RULE_partsSection
-
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterPartsSection" ):
-                listener.enterPartsSection(self)
-
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitPartsSection" ):
-                listener.exitPartsSection(self)
 
         def accept(self, visitor:ParseTreeVisitor):
             if hasattr( visitor, "visitPartsSection" ):
@@ -272,14 +256,6 @@ class SRAPLParser ( Parser ):
 
         def getRuleIndex(self):
             return SRAPLParser.RULE_floatList
-
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterFloatList" ):
-                listener.enterFloatList(self)
-
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitFloatList" ):
-                listener.exitFloatList(self)
 
         def accept(self, visitor:ParseTreeVisitor):
             if hasattr( visitor, "visitFloatList" ):
@@ -336,14 +312,6 @@ class SRAPLParser ( Parser ):
         def getRuleIndex(self):
             return SRAPLParser.RULE_value
 
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterValue" ):
-                listener.enterValue(self)
-
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitValue" ):
-                listener.exitValue(self)
-
         def accept(self, visitor:ParseTreeVisitor):
             if hasattr( visitor, "visitValue" ):
                 return visitor.visitValue(self)
@@ -393,14 +361,6 @@ class SRAPLParser ( Parser ):
         def getRuleIndex(self):
             return SRAPLParser.RULE_programmSection
 
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterProgrammSection" ):
-                listener.enterProgrammSection(self)
-
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitProgrammSection" ):
-                listener.exitProgrammSection(self)
-
         def accept(self, visitor:ParseTreeVisitor):
             if hasattr( visitor, "visitProgrammSection" ):
                 return visitor.visitProgrammSection(self)
@@ -445,14 +405,6 @@ class SRAPLParser ( Parser ):
 
         def getRuleIndex(self):
             return SRAPLParser.RULE_blockContent
-
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterBlockContent" ):
-                listener.enterBlockContent(self)
-
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitBlockContent" ):
-                listener.exitBlockContent(self)
 
         def accept(self, visitor:ParseTreeVisitor):
             if hasattr( visitor, "visitBlockContent" ):
@@ -522,14 +474,6 @@ class SRAPLParser ( Parser ):
 
         def getRuleIndex(self):
             return SRAPLParser.RULE_statement
-
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterStatement" ):
-                listener.enterStatement(self)
-
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitStatement" ):
-                listener.exitStatement(self)
 
         def accept(self, visitor:ParseTreeVisitor):
             if hasattr( visitor, "visitStatement" ):
@@ -610,14 +554,6 @@ class SRAPLParser ( Parser ):
         def getRuleIndex(self):
             return SRAPLParser.RULE_block
 
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterBlock" ):
-                listener.enterBlock(self)
-
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitBlock" ):
-                listener.exitBlock(self)
-
         def accept(self, visitor:ParseTreeVisitor):
             if hasattr( visitor, "visitBlock" ):
                 return visitor.visitBlock(self)
@@ -671,14 +607,6 @@ class SRAPLParser ( Parser ):
 
         def getRuleIndex(self):
             return SRAPLParser.RULE_assignment
-
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterAssignment" ):
-                listener.enterAssignment(self)
-
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitAssignment" ):
-                listener.exitAssignment(self)
 
         def accept(self, visitor:ParseTreeVisitor):
             if hasattr( visitor, "visitAssignment" ):
@@ -737,14 +665,6 @@ class SRAPLParser ( Parser ):
 
         def getRuleIndex(self):
             return SRAPLParser.RULE_functionCall
-
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterFunctionCall" ):
-                listener.enterFunctionCall(self)
-
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitFunctionCall" ):
-                listener.exitFunctionCall(self)
 
         def accept(self, visitor:ParseTreeVisitor):
             if hasattr( visitor, "visitFunctionCall" ):
@@ -809,14 +729,6 @@ class SRAPLParser ( Parser ):
 
         def getRuleIndex(self):
             return SRAPLParser.RULE_argList
-
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterArgList" ):
-                listener.enterArgList(self)
-
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitArgList" ):
-                listener.exitArgList(self)
 
         def accept(self, visitor:ParseTreeVisitor):
             if hasattr( visitor, "visitArgList" ):
@@ -884,14 +796,6 @@ class SRAPLParser ( Parser ):
         def getRuleIndex(self):
             return SRAPLParser.RULE_ifStatement
 
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterIfStatement" ):
-                listener.enterIfStatement(self)
-
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitIfStatement" ):
-                listener.exitIfStatement(self)
-
         def accept(self, visitor:ParseTreeVisitor):
             if hasattr( visitor, "visitIfStatement" ):
                 return visitor.visitIfStatement(self)
@@ -942,14 +846,6 @@ class SRAPLParser ( Parser ):
         def getRuleIndex(self):
             return SRAPLParser.RULE_redoStatement
 
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterRedoStatement" ):
-                listener.enterRedoStatement(self)
-
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitRedoStatement" ):
-                listener.exitRedoStatement(self)
-
         def accept(self, visitor:ParseTreeVisitor):
             if hasattr( visitor, "visitRedoStatement" ):
                 return visitor.visitRedoStatement(self)
@@ -994,14 +890,6 @@ class SRAPLParser ( Parser ):
         def getRuleIndex(self):
             return SRAPLParser.RULE_restartStatement
 
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterRestartStatement" ):
-                listener.enterRestartStatement(self)
-
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitRestartStatement" ):
-                listener.exitRestartStatement(self)
-
         def accept(self, visitor:ParseTreeVisitor):
             if hasattr( visitor, "visitRestartStatement" ):
                 return visitor.visitRestartStatement(self)
@@ -1043,22 +931,17 @@ class SRAPLParser ( Parser ):
         def LBRACK(self):
             return self.getToken(SRAPLParser.LBRACK, 0)
 
-        def INT(self):
-            return self.getToken(SRAPLParser.INT, 0)
-
         def RBRACK(self):
             return self.getToken(SRAPLParser.RBRACK, 0)
 
+        def INT(self):
+            return self.getToken(SRAPLParser.INT, 0)
+
+        def FLOAT(self):
+            return self.getToken(SRAPLParser.FLOAT, 0)
+
         def getRuleIndex(self):
             return SRAPLParser.RULE_memoryRef
-
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterMemoryRef" ):
-                listener.enterMemoryRef(self)
-
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitMemoryRef" ):
-                listener.exitMemoryRef(self)
 
         def accept(self, visitor:ParseTreeVisitor):
             if hasattr( visitor, "visitMemoryRef" ):
@@ -1073,6 +956,7 @@ class SRAPLParser ( Parser ):
 
         localctx = SRAPLParser.MemoryRefContext(self, self._ctx, self.state)
         self.enterRule(localctx, 28, self.RULE_memoryRef)
+        self._la = 0 # Token type
         try:
             self.enterOuterAlt(localctx, 1)
             self.state = 104
@@ -1080,7 +964,12 @@ class SRAPLParser ( Parser ):
             self.state = 105
             self.match(SRAPLParser.LBRACK)
             self.state = 106
-            self.match(SRAPLParser.INT)
+            _la = self._input.LA(1)
+            if not(_la==22 or _la==23):
+                self._errHandler.recoverInline(self)
+            else:
+                self._errHandler.reportMatch(self)
+                self.consume()
             self.state = 107
             self.match(SRAPLParser.RBRACK)
         except RecognitionException as re:
@@ -1118,14 +1007,6 @@ class SRAPLParser ( Parser ):
             return self.getTypedRuleContext(SRAPLParser.MemoryRefContext,0)
 
 
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterVariableExpr" ):
-                listener.enterVariableExpr(self)
-
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitVariableExpr" ):
-                listener.exitVariableExpr(self)
-
         def accept(self, visitor:ParseTreeVisitor):
             if hasattr( visitor, "visitVariableExpr" ):
                 return visitor.visitVariableExpr(self)
@@ -1147,14 +1028,6 @@ class SRAPLParser ( Parser ):
 
         def POWER(self):
             return self.getToken(SRAPLParser.POWER, 0)
-
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterPowerExpr" ):
-                listener.enterPowerExpr(self)
-
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitPowerExpr" ):
-                listener.exitPowerExpr(self)
 
         def accept(self, visitor:ParseTreeVisitor):
             if hasattr( visitor, "visitPowerExpr" ):
@@ -1180,14 +1053,6 @@ class SRAPLParser ( Parser ):
         def MINUS(self):
             return self.getToken(SRAPLParser.MINUS, 0)
 
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterAddSubExpr" ):
-                listener.enterAddSubExpr(self)
-
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitAddSubExpr" ):
-                listener.exitAddSubExpr(self)
-
         def accept(self, visitor:ParseTreeVisitor):
             if hasattr( visitor, "visitAddSubExpr" ):
                 return visitor.visitAddSubExpr(self)
@@ -1204,14 +1069,6 @@ class SRAPLParser ( Parser ):
         def value(self):
             return self.getTypedRuleContext(SRAPLParser.ValueContext,0)
 
-
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterAtomExpr" ):
-                listener.enterAtomExpr(self)
-
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitAtomExpr" ):
-                listener.exitAtomExpr(self)
 
         def accept(self, visitor:ParseTreeVisitor):
             if hasattr( visitor, "visitAtomExpr" ):
@@ -1233,14 +1090,6 @@ class SRAPLParser ( Parser ):
 
         def RPAREN(self):
             return self.getToken(SRAPLParser.RPAREN, 0)
-
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterParensExpr" ):
-                listener.enterParensExpr(self)
-
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitParensExpr" ):
-                listener.exitParensExpr(self)
 
         def accept(self, visitor:ParseTreeVisitor):
             if hasattr( visitor, "visitParensExpr" ):
@@ -1265,14 +1114,6 @@ class SRAPLParser ( Parser ):
             return self.getToken(SRAPLParser.MUL, 0)
         def DIV(self):
             return self.getToken(SRAPLParser.DIV, 0)
-
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterMulDivExpr" ):
-                listener.enterMulDivExpr(self)
-
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitMulDivExpr" ):
-                listener.exitMulDivExpr(self)
 
         def accept(self, visitor:ParseTreeVisitor):
             if hasattr( visitor, "visitMulDivExpr" ):

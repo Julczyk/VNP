@@ -79,9 +79,9 @@ restartStatement
     : RESTART SEMI
     ;
 
-// Odwołanie do pamięci X[i]
+// Odwołanie do pamięci X[i] - akceptuje int lub float (float jest konwertowany na int w interpreterze)
 memoryRef
-    : MEM_TAG LBRACK INT RBRACK
+    : MEM_TAG LBRACK (INT | FLOAT) RBRACK
     ;
 
 // Wyrażenia matematyczne
@@ -109,7 +109,8 @@ RESTART: 'RESTART' ;
 
 // Identyfikatory
 MEM_TAG: 'X' ;             // Oznaczenie pamięci
-FUNC_ID: 'f_' [0-9]+ ;     // Funkcje postaci f_0, f_1, f_12
+// Funkcje postaci f_0, f_1, f_12 lub f_3.6 (float jest konwertowany na int w interpreterze)
+FUNC_ID: 'f_' [0-9]+ ('.' [0-9]+)? ;
 
 // Operatory
 ASSIGN: '=' ;

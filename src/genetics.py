@@ -5,10 +5,18 @@ Implementuje mutacje na poziomie AST:
 - Constant Jitter - zmiana wartości liczbowych o ±0.5
 - Register Mutation - zmiana indeksu X[n] o ±2
 - Node Swap - zamiana sąsiednich instrukcji w bloku
+- Add Function Call - dodanie wywołania f_n(X[k], ...)
+- Add Assignment - dodanie przypisania X[k] = expr
+- Add Control Flow - dodanie REDO/RESTART
+- Wrap With IF - opakowanie linii warunkiem IF(expr)
+- Operator Mutation - zmiana operatora matematycznego
+- Node Swell - rozbudowanie węzła E do (E op E')
+- Delete Statement - usunięcie instrukcji lub wyrażenia
 """
 
 import random
 import logging
+import copy
 from pathlib import Path
 
 from antlr4 import InputStream, CommonTokenStream
@@ -22,6 +30,12 @@ from sraplBase.SRAPLVisitor import SRAPLVisitor
 
 logger = logging.getLogger('Genetics')
 
+# Dostępne operatory matematyczne
+MATH_OPERATORS = ['+', '-', '*', '/']
+
+# Dostępne funkcje robotów (f_0 do f_8)
+AVAILABLE_FUNCTIONS = list(range(9))
+
 
 class SRAPLCodeGenerator(SRAPLVisitor):
     """
@@ -31,6 +45,11 @@ class SRAPLCodeGenerator(SRAPLVisitor):
     - _mutated_value: zmieniona wartość liczbowa
     - _mutated_index: zmieniony indeks pamięci
     - _swap_indices: para indeksów instrukcji do zamiany
+    - _added_statements: lista instrukcji do dodania
+    - _deleted_indices: zbiór indeksów instrukcji do usunięcia
+    - _wrap_with_if: indeks instrukcji do opakowania IF-em
+    - _mutated_operator: zmieniony operator matematyczny
+    - _swelled_expression: wyrażenie rozbudowane do (E op E')
     """
 
     def visitFile(self, ctx: SRAPLParser.FileContext) -> str:
@@ -76,10 +95,27 @@ class SRAPLCodeGenerator(SRAPLVisitor):
                 statements[i], statements[j] = statements[j], statements[i]
 
         lines = []
-        for stmt in statements:
+        deleted_indices = getattr(ctx, '_deleted_indices', set())
+        wrap_with_if = getattr(ctx, '_wrap_with_if', None)
+
+        for idx, stmt in enumerate(statements):
+            # Pomiń usunięte instrukcje
+            if idx in deleted_indices:
+                continue
+
             line = self.visit(stmt)
             if line:
+                # Opakuj w IF jeśli wymagane
+                if wrap_with_if is not None and idx == wrap_with_if['index']:
+                    condition = wrap_with_if['condition']
+                    line = f"IF ({condition}) {{\n    {line}\n}}"
                 lines.append(line)
+
+        # Dodaj nowe instrukcje
+        if hasattr(ctx, '_added_statements'):
+            for stmt in ctx._added_statements:
+                lines.append(stmt)
+
         return "\n".join(lines)
 
     def visitStatement(self, ctx) -> str:
@@ -134,7 +170,13 @@ class SRAPLCodeGenerator(SRAPLVisitor):
         """Generuje odwołanie do pamięci X[i] (z możliwą mutacją indeksu)."""
         if hasattr(ctx, '_mutated_index'):
             return f"X[{ctx._mutated_index}]"
-        idx = ctx.INT().getText()
+        # Obsługa zarówno INT jak i FLOAT (konwertuj float na int)
+        if ctx.INT():
+            idx = ctx.INT().getText()
+        elif ctx.FLOAT():
+            idx = str(int(round(float(ctx.FLOAT().getText()))))
+        else:
+            idx = "0"
         return f"X[{idx}]"
 
     # --- Wyrażenia ---
@@ -154,23 +196,39 @@ class SRAPLCodeGenerator(SRAPLVisitor):
         """Generuje mnożenie/dzielenie a * b lub a / b."""
         left = self.visit(ctx.expression(0))
         right = self.visit(ctx.expression(1))
-        op = ctx.getChild(1).getText()
+        # Użyj zmutowanego operatora jeśli istnieje
+        if hasattr(ctx, '_mutated_operator'):
+            op = ctx._mutated_operator
+        else:
+            op = ctx.getChild(1).getText()
         return f"{left} {op} {right}"
 
     def visitAddSubExpr(self, ctx: SRAPLParser.AddSubExprContext) -> str:
         """Generuje dodawanie/odejmowanie a + b lub a - b."""
         left = self.visit(ctx.expression(0))
         right = self.visit(ctx.expression(1))
-        op = ctx.getChild(1).getText()
+        # Użyj zmutowanego operatora jeśli istnieje
+        if hasattr(ctx, '_mutated_operator'):
+            op = ctx._mutated_operator
+        else:
+            op = ctx.getChild(1).getText()
         return f"{left} {op} {right}"
 
     def visitVariableExpr(self, ctx: SRAPLParser.VariableExprContext) -> str:
         """Generuje zmienną X[i]."""
-        return self.visit(ctx.memoryRef())
+        base = self.visit(ctx.memoryRef())
+        # Obsługa "spuchniętego" wyrażenia
+        if hasattr(ctx, '_swelled_expression'):
+            return f"({base} {ctx._swelled_expression})"
+        return base
 
     def visitAtomExpr(self, ctx: SRAPLParser.AtomExprContext) -> str:
         """Generuje atom (wartość liczbową)."""
-        return self.visit(ctx.value())
+        base = self.visit(ctx.value())
+        # Obsługa "spuchniętego" wyrażenia
+        if hasattr(ctx, '_swelled_expression'):
+            return f"({base} {ctx._swelled_expression})"
+        return base
 
     def defaultResult(self):
         return ""
@@ -189,6 +247,13 @@ class GeneticsEngine:
     1. Constant Jitter - zmiana wartości liczbowych o ±CONSTANT_JITTER_RANGE
     2. Register Mutation - zmiana indeksu X[n] o ±REGISTER_MUTATION_RANGE
     3. Node Swap - zamiana sąsiednich instrukcji w bloku
+    4. Add Function Call - dodanie wywołania f_n(X[k], ...)
+    5. Add Assignment - dodanie przypisania X[k] = expr
+    6. Add Control Flow - dodanie REDO/RESTART
+    7. Wrap With IF - opakowanie linii warunkiem IF(expr)
+    8. Operator Mutation - zmiana operatora matematycznego
+    9. Node Swell - rozbudowanie węzła E do (E op E')
+    10. Delete Statement - usunięcie instrukcji
     """
 
     CONSTANT_JITTER_RANGE = 0.5
@@ -204,6 +269,7 @@ class GeneticsEngine:
             mutation_rate: Prawdopodobieństwo mutacji dla każdego węzła (0.0-1.0)
         """
         self.mutation_rate = mutation_rate
+        self._in_parts_section = False  # Flaga dla pominięcia mutacji w $PARTS
 
     def _parse(self, program_code: str) -> SRAPLParser.FileContext:
         """Parsuje kod SRAPL i zwraca drzewo AST."""
@@ -261,20 +327,47 @@ class GeneticsEngine:
         if ctx is None:
             return
 
-        # Mutacja wartości liczbowych
-        if isinstance(ctx, SRAPLParser.ValueContext):
+        # Śledź czy jesteśmy w sekcji $PARTS (nie mutujemy tej sekcji)
+        if isinstance(ctx, SRAPLParser.PartsSectionContext):
+            self._in_parts_section = True
+
+        if isinstance(ctx, SRAPLParser.ProgrammSectionContext):
+            self._in_parts_section = False
+
+        # Mutacja wartości liczbowych (tylko poza $PARTS)
+        if isinstance(ctx, SRAPLParser.ValueContext) and not self._in_parts_section:
             if random.random() < self.mutation_rate:
                 self._mutate_constant(ctx)
 
-        # Mutacja indeksów pamięci
-        elif isinstance(ctx, SRAPLParser.MemoryRefContext):
+        # Mutacja indeksów pamięci (tylko poza $PARTS)
+        elif isinstance(ctx, SRAPLParser.MemoryRefContext) and not self._in_parts_section:
             if random.random() < self.mutation_rate:
                 self._mutate_memory_index(ctx)
 
-        # Zamiana sąsiednich instrukcji w bloku
-        elif isinstance(ctx, SRAPLParser.BlockContentContext):
+        # Mutacje na poziomie bloku (tylko poza $PARTS)
+        elif isinstance(ctx, SRAPLParser.BlockContentContext) and not self._in_parts_section:
+            # Zamiana sąsiednich instrukcji
             if random.random() < self.mutation_rate:
                 self._swap_adjacent_statements(ctx)
+            # Dodanie nowej instrukcji
+            if random.random() < self.mutation_rate:
+                self._add_statement(ctx)
+            # Usunięcie instrukcji
+            if random.random() < self.mutation_rate:
+                self._delete_statement(ctx)
+            # Opakowanie instrukcji w IF
+            if random.random() < self.mutation_rate:
+                self._wrap_with_if(ctx)
+
+        # Mutacja operatorów (tylko poza $PARTS)
+        elif isinstance(ctx, (SRAPLParser.MulDivExprContext, SRAPLParser.AddSubExprContext)) and not self._in_parts_section:
+            if random.random() < self.mutation_rate:
+                self._mutate_operator(ctx)
+
+        # Mutacja "spuchnięcia" węzła (tylko poza $PARTS)
+        elif isinstance(ctx, (SRAPLParser.VariableExprContext, SRAPLParser.AtomExprContext)) and not self._in_parts_section:
+            if random.random() < self.mutation_rate:
+                self._swell_node(ctx)
 
         # Rekurencja do dzieci
         if hasattr(ctx, 'children') and ctx.children:
@@ -310,7 +403,14 @@ class GeneticsEngine:
             mem_ref_ctx: Kontekst węzła odwołania do pamięci
         """
         try:
-            current_index = int(mem_ref_ctx.INT().getText())
+            # Obsługa zarówno INT jak i FLOAT
+            if mem_ref_ctx.INT():
+                current_index = int(mem_ref_ctx.INT().getText())
+            elif mem_ref_ctx.FLOAT():
+                current_index = int(round(float(mem_ref_ctx.FLOAT().getText())))
+            else:
+                return
+
             delta = random.randint(-self.REGISTER_MUTATION_RANGE, self.REGISTER_MUTATION_RANGE)
             new_index = max(0, min(self.MEMORY_INDEX_MAX, current_index + delta))
 
@@ -333,6 +433,160 @@ class GeneticsEngine:
             block_ctx._swap_indices = (idx, idx + 1)
 
             logger.debug(f"Statement swap: indices {idx} <-> {idx + 1}")
+
+    def _generate_random_expression(self, depth: int = 0) -> str:
+        """
+        Generuje losowe wyrażenie SRAPL.
+
+        Args:
+            depth: Głębokość rekurencji (dla ograniczenia złożoności)
+
+        Returns:
+            String z wyrażeniem SRAPL
+        """
+        max_depth = 2
+
+        if depth >= max_depth or random.random() < 0.6:
+            # Wygeneruj atom (końcowy węzeł)
+            if random.random() < 0.5:
+                # Stała liczbowa
+                value = round(random.uniform(0.0, 10.0), 1)
+                return f"{value}"
+            else:
+                # Odwołanie do pamięci X[k]
+                idx = random.randint(0, self.MEMORY_INDEX_MAX)
+                return f"X[{idx}]"
+        else:
+            # Wygeneruj wyrażenie binarne
+            left = self._generate_random_expression(depth + 1)
+            right = self._generate_random_expression(depth + 1)
+            op = random.choice(MATH_OPERATORS)
+            return f"({left} {op} {right})"
+
+    def _generate_random_function_call(self) -> str:
+        """
+        Generuje losowe wywołanie funkcji robota.
+
+        Returns:
+            String z wywołaniem funkcji f_n(args);
+        """
+        func_id = random.choice(AVAILABLE_FUNCTIONS)
+        num_args = random.randint(0, 3)
+        args = []
+        for _ in range(num_args):
+            if random.random() < 0.5:
+                # Użyj odwołania do pamięci
+                idx = random.randint(0, self.MEMORY_INDEX_MAX)
+                args.append(f"X[{idx}]")
+            else:
+                # Użyj stałej liczbowej
+                value = round(random.uniform(0.0, 5.0), 1)
+                args.append(f"{value}")
+
+        args_str = ", ".join(args)
+        return f"f_{func_id}({args_str});"
+
+    def _generate_random_assignment(self) -> str:
+        """
+        Generuje losowe przypisanie do pamięci.
+
+        Returns:
+            String z przypisaniem X[k] = expr;
+        """
+        idx = random.randint(0, self.MEMORY_INDEX_MAX)
+        expr = self._generate_random_expression()
+        return f"X[{idx}] = {expr};"
+
+    def _add_statement(self, block_ctx: SRAPLParser.BlockContentContext):
+        """
+        Dodaje nową instrukcję do bloku.
+
+        Args:
+            block_ctx: Kontekst węzła zawartości bloku
+        """
+        if not hasattr(block_ctx, '_added_statements'):
+            block_ctx._added_statements = []
+
+        # Losowy typ instrukcji
+        stmt_type = random.choice(['function', 'assignment', 'redo', 'restart'])
+
+        if stmt_type == 'function':
+            stmt = self._generate_random_function_call()
+        elif stmt_type == 'assignment':
+            stmt = self._generate_random_assignment()
+        elif stmt_type == 'redo':
+            stmt = "REDO;"
+        else:  # restart
+            stmt = "RESTART;"
+
+        block_ctx._added_statements.append(stmt)
+        logger.debug(f"Added statement: {stmt}")
+
+    def _delete_statement(self, block_ctx: SRAPLParser.BlockContentContext):
+        """
+        Usuwa instrukcję z bloku.
+
+        Args:
+            block_ctx: Kontekst węzła zawartości bloku
+        """
+        statements = block_ctx.statement()
+        if len(statements) > 1:  # Nie usuwaj ostatniej instrukcji
+            if not hasattr(block_ctx, '_deleted_indices'):
+                block_ctx._deleted_indices = set()
+
+            idx = random.randint(0, len(statements) - 1)
+            block_ctx._deleted_indices.add(idx)
+            logger.debug(f"Deleted statement at index: {idx}")
+
+    def _wrap_with_if(self, block_ctx: SRAPLParser.BlockContentContext):
+        """
+        Opakowuje instrukcję w bloku warunkiem IF.
+
+        Args:
+            block_ctx: Kontekst węzła zawartości bloku
+        """
+        statements = block_ctx.statement()
+        if len(statements) > 0:
+            idx = random.randint(0, len(statements) - 1)
+            condition = self._generate_random_expression()
+            block_ctx._wrap_with_if = {'index': idx, 'condition': condition}
+            logger.debug(f"Wrapped statement {idx} with IF ({condition})")
+
+    def _mutate_operator(self, expr_ctx):
+        """
+        Zmienia operator matematyczny na losowy inny.
+
+        Args:
+            expr_ctx: Kontekst węzła wyrażenia (MulDivExpr lub AddSubExpr)
+        """
+        current_op = expr_ctx.getChild(1).getText()
+        # Wybierz inny operator
+        other_ops = [op for op in MATH_OPERATORS if op != current_op]
+        new_op = random.choice(other_ops)
+        expr_ctx._mutated_operator = new_op
+        logger.debug(f"Operator mutation: {current_op} -> {new_op}")
+
+    def _swell_node(self, node_ctx):
+        """
+        Rozbudowuje węzeł E do (E op E'), gdzie E' to losowy węzeł końcowy.
+
+        Args:
+            node_ctx: Kontekst węzła (VariableExpr lub AtomExpr)
+        """
+        op = random.choice(MATH_OPERATORS)
+
+        # Wygeneruj losowy węzeł końcowy
+        if random.random() < 0.5:
+            # Stała liczbowa
+            value = round(random.uniform(0.0, 10.0), 1)
+            new_node = f"{value}"
+        else:
+            # Odwołanie do pamięci
+            idx = random.randint(0, self.MEMORY_INDEX_MAX)
+            new_node = f"X[{idx}]"
+
+        node_ctx._swelled_expression = f"{op} {new_node}"
+        logger.debug(f"Node swell: E -> (E {op} {new_node})")
 
 
 class Mutator:
