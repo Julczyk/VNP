@@ -146,5 +146,6 @@ STATS_REPORT_INTERVAL = 0
 # --------------------------
 # Parametry ewolucji:
 
-# Szansa na losową śmierć automatu (1/100 = 1% per tick)
-RANDOM_DEATH_CHANCE = 0.01
+# Szansa na losową śmierć automatu (0 = wyłączona, 0.01 = 1% per tick)
+# Domyślnie wyłączona - można włączyć w funkcji simulate()
+RANDOM_DEATH_CHANCE = 0.0

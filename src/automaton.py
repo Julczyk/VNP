@@ -1,5 +1,5 @@
 from parts import Part, Engine, Scanner, Storage
-from config import FunctionID, ResourceType, STATS_REPORT_INTERVAL, get_function_to_part_map, RANDOM_DEATH_CHANCE
+from config import FunctionID, ResourceType, STATS_REPORT_INTERVAL, get_function_to_part_map
 from srapl_interpreter import SRAPLInterpreter as Interpreter
 from stats import stats_manager, AutomatonStats
 import random
@@ -81,7 +81,8 @@ class Automaton:
         self.stats.record_step()
 
         # Losowa śmierć (symuluje "wypadki" i wymusza rotację populacji)
-        if RANDOM_DEATH_CHANCE > 0 and random.random() < RANDOM_DEATH_CHANCE:
+        random_death_chance = getattr(self.world, 'random_death_chance', 0.0)
+        if random_death_chance > 0 and random.random() < random_death_chance:
             self._log_action("random death")
             self.die()
             return

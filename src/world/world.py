@@ -22,6 +22,7 @@ class World:
         self.wrecks = []
         self.tick = 0
         self.mutation_rate = 0.1  # Domyślna wartość, może być zmieniona przez Simulation
+        self.random_death_chance = 0.0  # Szansa na losową śmierć, domyślnie wyłączona
         self.verbose = False  # Czy drukować zasoby przy inicjalizacji
         self.generate_map()
 

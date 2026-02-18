@@ -148,7 +148,8 @@ def simulate(
     make_timelapse: bool = False,
     export_frames: List[int] = None,
     logging_enabled: bool = False,
-    output_folder: str = None
+    output_folder: str = None,
+    random_death_chance: float = 0.0
 ) -> pd.DataFrame:
     """
     Przeprowadza symulację VNP.
@@ -167,6 +168,7 @@ def simulate(
         export_frames: Lista ticków do eksportu obrazów
         logging_enabled: Czy włączyć logowanie na stdout
         output_folder: Folder na wyniki
+        random_death_chance: Szansa na losową śmierć automatu per tick (0.0 = wyłączona)
 
     Returns:
         pd.DataFrame z danymi automatów
@@ -205,6 +207,9 @@ def simulate(
         world.mutation_rate = 0
     else:
         world.mutation_rate = mutation_speed
+
+    # Ustawienie szansy na losową śmierć
+    world.random_death_chance = random_death_chance
 
     # Tworzenie folderu wyjściowego
     if output_folder:
@@ -415,9 +420,12 @@ def simulate(
             f.write(f"Początkowa populacja: {len(starting_population)}\n")
             f.write(f"Końcowa populacja: {len(world.automata)}\n")
             f.write(f"Łączna liczba automatów: {len(df)}\n")
-            f.write(f"Średni wiek: {df['age'].mean():.2f} ticków\n")
-            f.write(f"Średnia liczba potomków: {df['offspring_count'].mean():.2f}\n")
-            f.write(f"Średnia przebyta odległość: {df['total_distance_traveled'].mean():.2f}\n")
+            if len(df) > 0:
+                f.write(f"Średni wiek: {df['age'].mean():.2f} ticków\n")
+                f.write(f"Średnia liczba potomków: {df['offspring_count'].mean():.2f}\n")
+                f.write(f"Średnia przebyta odległość: {df['total_distance_traveled'].mean():.2f}\n")
+            else:
+                f.write("Brak automatów w symulacji.\n")
 
     if return_data == "df":
         return df
@@ -497,6 +505,12 @@ def main():
         action='store_true',
         help='Włącz logowanie na stdout'
     )
+    parser.add_argument(
+        '--random_death_chance',
+        type=float,
+        default=0.0,
+        help='Szansa na losową śmierć automatu per tick (0.0 = wyłączona, 0.01 = 1%%)'
+    )
 
     args = parser.parse_args()
 
@@ -556,7 +570,8 @@ $PROGRAMM
         make_timelapse=args.make_timelapse,
         export_frames=args.export_frames,
         logging_enabled=args.logging,
-        output_folder=args.output_folder
+        output_folder=args.output_folder,
+        random_death_chance=args.random_death_chance
     )
 
     # Wyświetl wyniki

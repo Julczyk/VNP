@@ -260,6 +260,7 @@ class GeneticsEngine:
     REGISTER_MUTATION_RANGE = 2
     MEMORY_INDEX_MAX = 63
     MAX_MUTATION_RETRIES = 5
+    PARTS_JITTER_RANGE = 0.3  # Zakres mutacji dla wartości w $PARTS
 
     def __init__(self, mutation_rate: float = 0.1):
         """
@@ -334,10 +335,16 @@ class GeneticsEngine:
         if isinstance(ctx, SRAPLParser.ProgrammSectionContext):
             self._in_parts_section = False
 
-        # Mutacja wartości liczbowych (tylko poza $PARTS)
-        if isinstance(ctx, SRAPLParser.ValueContext) and not self._in_parts_section:
-            if random.random() < self.mutation_rate:
-                self._mutate_constant(ctx)
+        # Mutacja wartości liczbowych
+        if isinstance(ctx, SRAPLParser.ValueContext):
+            if self._in_parts_section:
+                # W sekcji $PARTS: mutacja o ±PARTS_JITTER_RANGE, nie może być < 0
+                if random.random() < self.mutation_rate:
+                    self._mutate_parts_value(ctx)
+            else:
+                # W programie: standardowa mutacja
+                if random.random() < self.mutation_rate:
+                    self._mutate_constant(ctx)
 
         # Mutacja indeksów pamięci (tylko poza $PARTS)
         elif isinstance(ctx, SRAPLParser.MemoryRefContext) and not self._in_parts_section:
@@ -392,6 +399,30 @@ class GeneticsEngine:
             value_ctx._mutated_value = new_value
 
             logger.debug(f"Constant mutation: {current_value} -> {new_value}")
+        except ValueError:
+            pass
+
+    def _mutate_parts_value(self, value_ctx: SRAPLParser.ValueContext):
+        """
+        Mutacja wartości w sekcji $PARTS: dodaje szum ±PARTS_JITTER_RANGE.
+        Wartość nie może spaść poniżej 0 - jeśli tak, mutacja jest odrzucana.
+
+        Args:
+            value_ctx: Kontekst węzła wartości liczbowej w $PARTS
+        """
+        try:
+            current_value = float(value_ctx.getText())
+            jitter = random.uniform(-self.PARTS_JITTER_RANGE, self.PARTS_JITTER_RANGE)
+            new_value = current_value + jitter
+
+            # Wartość jest niepoprawna jeśli < 0 - odrzuć mutację
+            if new_value < 0:
+                logger.debug(f"Parts mutation rejected: {current_value} + {jitter} = {new_value} < 0")
+                return
+
+            value_ctx._mutated_value = new_value
+
+            logger.debug(f"Parts mutation: {current_value} -> {new_value}")
         except ValueError:
             pass
 

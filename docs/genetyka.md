@@ -28,8 +28,24 @@ Visitor konwertujący drzewo AST z powrotem do kodu SRAPL. Obsługuje atrybuty m
 
 ## Typy mutacji
 
+### Mutacje sekcji $PARTS
+
+Wartości w sekcji `$PARTS` podlegają mutacji - zmiana o losową wartość z zakresu ±0.3.
+Wartość nie może spaść poniżej 0 - jeśli wynik byłby ujemny, mutacja jest odrzucana.
+
+**Parametry:**
+- `PARTS_JITTER_RANGE = 0.3`
+
+**Przykład:**
+```
+Przed: $PARTS: 1.0, 1.2, 0.8;
+Po:    $PARTS: 1.1, 1.0, 0.9;
+```
+
+### Mutacje sekcji $PROGRAMM
+
 ### 1. Constant Jitter (Mutacja stałych)
-Zmienia wartości liczbowe o losową wartość z zakresu ±0.5.
+Zmienia wartości liczbowe w wyrażeniach o losową wartość z zakresu ±0.5.
 
 **Przykład:**
 ```
@@ -64,6 +80,69 @@ IF (1.5 - X[3]) {            f_7(1.0);
     f_7(1.0);            }
 }                        f_2(1.0, 1.0);
 ```
+
+### 4. Add Function Call (Dodanie wywołania funkcji)
+Dodaje losowe wywołanie funkcji robota (f_0 do f_8) z losowymi argumentami.
+
+**Przykład:**
+```
+Przed:              Po:
+f_2(1.0);          f_2(1.0);
+REDO;              f_5(X[12], 2.3);
+                   REDO;
+```
+
+### 5. Add Assignment (Dodanie przypisania)
+Dodaje losowe przypisanie do pamięci.
+
+**Przykład:**
+```
+Przed:              Po:
+f_2(1.0);          f_2(1.0);
+                   X[15] = (3.2 + X[4]);
+```
+
+### 6. Add Control Flow (Dodanie sterowania)
+Dodaje instrukcję REDO lub RESTART.
+
+**Przykład:**
+```
+Przed:              Po:
+f_7(1.0);          f_7(1.0);
+                   REDO;
+```
+
+### 7. Wrap With IF (Opakowanie w IF)
+Opakowuje istniejącą instrukcję w blok IF z losowym warunkiem.
+
+**Przykład:**
+```
+Przed:                      Po:
+f_7(1.0);                  IF (X[8] - 2.1) {
+                               f_7(1.0);
+                           }
+```
+
+### 8. Operator Mutation (Zmiana operatora)
+Zamienia operator matematyczny (+, -, *, /) na inny.
+
+**Przykład:**
+```
+Przed: X[5] = X[3] + 1.0;
+Po:    X[5] = X[3] * 1.0;
+```
+
+### 9. Node Swell (Rozbudowa węzła)
+Rozbudowuje proste wyrażenie E do (E op E'), gdzie E' to losowy atom.
+
+**Przykład:**
+```
+Przed: X[5] = 3.0;
+Po:    X[5] = (3.0 + X[12]);
+```
+
+### 10. Delete Statement (Usunięcie instrukcji)
+Usuwa losową instrukcję z bloku (nie usuwa ostatniej instrukcji w bloku).
 
 ## Integracja z reprodukcją
 
@@ -141,60 +220,103 @@ print(mutated)
 "
 ```
 
-## Gold Fitness Evolution
+## System eksperymentów ewolucyjnych
 
-System ewolucji wykorzystujący gold_fitness jako kryterium selekcji.
+Wieloetapowe eksperymenty ewolucji w `testing/final/evolution.ipynb`.
 
-### Koncepcja
+### Architektura eksperymentu
 
-Gold fitness = suma złota zebranego przez automata + wszystkich jego potomków.
+Eksperyment składa się z wielu **etapów (generacji)**. W każdym etapie:
 
-Ta miara faworyzuje automaty, które:
-1. Zbierają złoto efektywnie
-2. Reprodukują się (przekazują geny)
-3. Mają potomstwo, które również zbiera złoto
+1. **Symulacja etapu**: Uruchamiana z parametrami z notebooka
+2. **Analiza statystyk**: Obliczane są średnie, sumy dla różnych metryk
+3. **Selekcja**: Wybierana jest grupa najlepszych automatów do następnego etapu
+4. **Ewaluacja równoległa**: Dla wybranych automatów uruchamiane są krótkie symulacje ewaluacyjne
+5. **Zapis wyników**: Programy, statystyki i klatki zapisywane do folderu results/
 
-### Uruchomienie ewolucji
-
-```bash
-python testing/genetics_tests_gold/run_gold_evolution.py \
-  -i testing/genetics_tests_gold/start.srl \
-  -k 10 \   # 10 iteracji
-  -t 1000 \ # 1000 ticków per iteracja
-  -n 5      # 5 automatów w populacji
-```
-
-### Algorytm
-
-1. **Inicjalizacja**: n kopii programu startowego
-2. **Symulacja**: Uruchom symulację przez t ticków
-3. **Ewaluacja**: Oblicz gold_fitness dla każdego startowego automatu
-4. **Selekcja**: Wybierz n najlepszych programów
-5. **Mutacja**: Zastosuj mutacje do wybranych programów
-6. **Powtórz**: Wróć do kroku 2 (k iteracji)
-
-### Parametry konfiguracyjne
-
-W `src/config.py`:
+### Parametry eksperymentu
 
 ```python
-GOLD_FITNESS_TIME = 200      # Po ilu tickach raportować gold_fitness
-RANDOM_DEATH_CHANCE = 0.01   # Szansa na losową śmierć (1% per tick)
+STAGES = 5              # Liczba etapów (generacji)
+TO_NEXT = 5             # Automaty przechodące do następnego etapu
+EVAL_COUNT = 3          # Automaty do ewaluacji (eval < to_next)
+
+# Parametry symulacji etapu
+STAGE_PARAMS = {
+    'time': 500,        # Czas trwania (ticki)
+    'size': [80, 80],   # Rozmiar świata
+    'mutation_speed': 0.1,
+    'mutation_type': 'all',
+    # ...
+}
+
+# Parametry ewaluacji (bez mutacji)
+EVAL_PARAMS = {
+    'time': 100,        # Krótki czas
+    'mutation_speed': 0,
+    'mutation_type': 'disabled',
+    # ...
+}
 ```
 
-### Wyniki
+### Selekcja
 
-Skrypt zapisuje:
-- `evolution_history.json` - pełna historia wszystkich iteracji
-- `final_report.csv` - podsumowanie (avg/max/min gold_fitness per iteracja)
-- `best_programs/` - najlepsze programy z ostatniej iteracji
-
-### Przykładowe wyjście CSV
-
-```csv
-iteration,avg_gold_fitness,max_gold_fitness,min_gold_fitness,total_automata
-1,2.40,5,0,47
-2,3.80,8,1,52
-3,5.20,12,2,61
-...
+Fitness automatu obliczany jako:
+```python
+fitness = offspring_count * 10 + age * 0.5 + total_resources * 2
 ```
+
+### Struktura wyników
+
+```
+results/evolution_YYYYMMDD_HHMMSS/
+├── generation_0/
+│   ├── stage_results.csv      # DataFrame z etapu
+│   ├── stage_stats.json       # Statystyki podsumowujące
+│   ├── programs/              # Programy przetrwałych
+│   │   ├── 1.srl
+│   │   └── 2.srl
+│   └── evals/                 # Wyniki ewaluacji
+│       ├── 1.json
+│       └── 2.json
+├── generation_1/
+│   └── ...
+├── competitions/              # Symulacje rywalizacji
+│   └── comp_HHMMSS/
+│       ├── frames/
+│       └── competition.mp4
+├── experiment_summary.png     # Wykresy podsumowujące
+├── population_history.png     # Historia populacji w czasie
+└── summary.txt               # Podsumowanie tekstowe
+```
+
+### Funkcje pomocnicze
+
+```python
+# Ewaluacja pojedynczego automatu
+df = evaluate_automaton(automaton_id=1, generation=0, time=200)
+
+# Rywalizacja między automatami na dużej mapie
+df = run_competition([
+    {'id': 1, 'generation': 0},
+    {'id': 2, 'generation': 1}
+], map_size=120, make_video=True)
+```
+
+### Uruchomienie
+
+```bash
+cd testing/final
+jupyter notebook evolution.ipynb
+# lub
+jupyter lab evolution.ipynb
+```
+
+### Wykresy generowane automatycznie
+
+1. **Populacja w etapach** - słupki łącznej liczby i żywych na końcu
+2. **Średni wiek** - trend w kolejnych etapach
+3. **Średnia potomków** - trend reprodukcji
+4. **Zebrane zasoby** - sumy dla różnych typów zasobów
+5. **Energia** - średnia wyprodukowana vs zużyta
+6. **Ewaluacja** - mediana zebranych zasobów per etap
