@@ -187,7 +187,8 @@ def simulate(
         logging.basicConfig(
             level=logging.INFO,
             format='%(message)s',
-            handlers=[logging.StreamHandler(sys.stdout)]
+            handlers=[logging.StreamHandler(sys.stdout)],
+            force=True  # Wymusza rekonfigurację nawet jeśli logging już skonfigurowany
         )
         logging.getLogger('AUTOMATON').setLevel(logging.INFO)
     else:

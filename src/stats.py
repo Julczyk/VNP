@@ -233,6 +233,10 @@ class StatsManager:
 
     def report(self, stats: AutomatonStats, current_tick: int, reason: str = "periodic"):
         """Raportuje statystyki automatu."""
+        # Ustaw death_tick jeśli to raport śmierci
+        if reason == "death" and stats.death_tick is None:
+            stats.death_tick = current_tick
+
         report_str = stats.format_report(current_tick, reason)
         logger.info(report_str)
 

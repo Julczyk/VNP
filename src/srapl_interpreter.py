@@ -25,6 +25,10 @@ from config import FunctionID
 logger = logging.getLogger('SRAPL')
 logging.basicConfig(filename='srapl.log', level=logging.DEBUG)
 
+# --- Konfiguracja limitów wykonania ---
+MAX_INSTRUCTIONS_PER_TICK = 1000  # Maksymalna liczba instrukcji bez wywołania f_n
+INSTRUCTION_ENERGY_COST = 0.01   # Koszt energii za każdą instrukcję
+
 # --- Wyjątki sterujące przepływem (sygnały, nie błędy) ---
 
 class RedoSignal(Exception):
@@ -39,6 +43,16 @@ class RestartSignal(Exception):
 
 class ProgramFinished(Exception):
     """Sygnał zakończenia programu (doszedł do końca)."""
+    pass
+
+
+class InfiniteLoopDetected(Exception):
+    """Wykryto nieskończoną pętlę (przekroczono limit instrukcji bez f_n)."""
+    pass
+
+
+class OutOfEnergy(Exception):
+    """Automat zużył całą energię podczas wykonywania instrukcji."""
     pass
 
 
@@ -57,6 +71,33 @@ class SRAPLExecutionVisitor(SRAPLVisitor):
         self.automaton = automaton
         self.memory = automaton.memory  # Referencja do pamięci automatu (64 floaty)
         self.debug = debug
+        self.instruction_count = 0  # Licznik instrukcji w bieżącym ticku
+
+    def _count_instruction(self):
+        """
+        Zlicza wykonaną instrukcję i pobiera energię.
+        Rzuca wyjątek jeśli przekroczono limit lub zabrakło energii.
+        """
+        self.instruction_count += 1
+
+        # Pobierz energię za instrukcję
+        if hasattr(self.automaton, 'energy'):
+            self.automaton.energy -= INSTRUCTION_ENERGY_COST
+            # Zapisz zużycie energii w statystykach
+            if hasattr(self.automaton, 'stats'):
+                self.automaton.stats.record_energy_consumed(INSTRUCTION_ENERGY_COST)
+            if self.automaton.energy <= 0:
+                self._log(f"Out of energy after {self.instruction_count} instructions")
+                raise OutOfEnergy()
+
+        # Sprawdź limit instrukcji
+        if self.instruction_count > MAX_INSTRUCTIONS_PER_TICK:
+            self._log(f"Infinite loop detected: {self.instruction_count} instructions without f_n call")
+            raise InfiniteLoopDetected()
+
+    def reset_instruction_count(self):
+        """Resetuje licznik instrukcji (wywoływane po f_n)."""
+        self.instruction_count = 0
 
     def _log(self, message):
         """Pomocnicza metoda do logowania z kontekstem automatu."""
@@ -126,6 +167,8 @@ class SRAPLExecutionVisitor(SRAPLVisitor):
         """
         Przypisanie: X[i] = wyrażenie;
         """
+        self._count_instruction()  # Zlicz instrukcję
+
         mem_idx = self._get_memory_index(ctx.memoryRef())
         value = self.visit(ctx.expression())
 
@@ -146,6 +189,8 @@ class SRAPLExecutionVisitor(SRAPLVisitor):
         Wywołanie dowolnej funkcji f_n kończy krok czasowy.
         Obsługuje zarówno f_1 jak i f_3.6 (float jest zaokrąglany do int).
         """
+        self._count_instruction()  # Zlicz instrukcję
+
         func_text = ctx.FUNC_ID().getText()  # "f_1" lub "f_3.6"
         # Pobierz część po "f_" i konwertuj na int (obsługuje float)
         func_num_str = func_text.split('_')[1]
@@ -165,6 +210,9 @@ class SRAPLExecutionVisitor(SRAPLVisitor):
         except ValueError:
             enum_id = func_id_val  # Fallback dla nieznanych ID
 
+        # Reset licznika instrukcji - wywołanie f_n kończy tick
+        self.reset_instruction_count()
+
         # YIELD - zwracamy kontrolę do symulatora
         yield (enum_id, args)
 
@@ -173,6 +221,8 @@ class SRAPLExecutionVisitor(SRAPLVisitor):
         Instrukcja warunkowa: IF(wyrażenie) { blok }
         Blok wykonuje się gdy wyrażenie > 0.
         """
+        self._count_instruction()  # Zlicz instrukcję (ewaluacja warunku)
+
         condition = self.visit(ctx.expression())
         self._log(f"IF condition: {condition} -> {'TRUE' if condition > 0 else 'FALSE'}")
 
@@ -183,11 +233,13 @@ class SRAPLExecutionVisitor(SRAPLVisitor):
 
     def visitRedoStatement(self, ctx: SRAPLParser.RedoStatementContext):
         """REDO - powrót do początku bieżącego bloku."""
+        self._count_instruction()  # Zlicz instrukcję
         self._log("REDO statement")
         raise RedoSignal()
 
     def visitRestartStatement(self, ctx: SRAPLParser.RestartStatementContext):
         """RESTART - powrót do początku programu."""
+        self._count_instruction()  # Zlicz instrukcję
         self._log("RESTART statement")
         raise RestartSignal()
 
@@ -299,11 +351,15 @@ class SRAPLInterpreter:
             automaton: Obiekt automatu z pamięcią i częściami
 
         Returns:
-            Tuple (FunctionID, list[float]) - ID funkcji i argumenty
+            Tuple (FunctionID, list[float], dict) - ID funkcji, argumenty i metadane
+            Metadane zawierają:
+            - 'kill': True jeśli automat powinien zostać zabity (inf loop / brak energii)
+            - 'reason': powód zabicia ('infinite_loop' lub 'out_of_energy')
         """
         if self.generator is None:
             # Pierwsze uruchomienie - tworzenie generatora
             visitor = SRAPLExecutionVisitor(automaton, debug=self.debug)
+            self._current_visitor = visitor  # Zachowaj referencję
             program_ctx = self.tree.programmSection()
             self.generator = visitor.visitProgrammSection(program_ctx)
             if self.debug:
@@ -320,7 +376,15 @@ class SRAPLInterpreter:
                 logger.warning("Program finished unexpectedly (StopIteration)")
             self.generator = None
             return FunctionID.IDLE, []
-
+        except InfiniteLoopDetected:
+            logger.warning("Infinite loop detected - killing automaton")
+            self.generator = None
+            # Zwróć specjalny sygnał zabicia
+            return None, [], {'kill': True, 'reason': 'infinite_loop'}
+        except OutOfEnergy:
+            logger.warning("Out of energy during program execution - killing automaton")
+            self.generator = None
+            return None, [], {'kill': True, 'reason': 'out_of_energy'}
         except Exception as e:
             logger.error(f"Runtime error: {e}")
             if self.debug:

@@ -91,7 +91,19 @@ class Automaton:
         old_position = self.position
 
         # 1. Wybór akcji przez program
-        func_id, args = self.interpreter.run_step(self)
+        result = self.interpreter.run_step(self)
+
+        # Obsługa nowego formatu z metadanymi (3 elementy) lub starego (2 elementy)
+        if len(result) == 3:
+            func_id, args, metadata = result
+            # Sprawdź czy interpreter sygnalizuje zabicie automatu
+            if metadata and metadata.get('kill'):
+                reason = metadata.get('reason', 'unknown')
+                self._log_action(f"dying ({reason})")
+                self.die()
+                return
+        else:
+            func_id, args = result
 
         # Normalizuj func_id do FunctionID enum
         if isinstance(func_id, int):
