@@ -1,10 +1,14 @@
 from parts import Part, Engine, Scanner, Storage
-from config import FunctionID, ResourceType, STATS_REPORT_INTERVAL, get_function_to_part_map, GOLD_FITNESS_TIME, RANDOM_DEATH_CHANCE
+from config import FunctionID, ResourceType, STATS_REPORT_INTERVAL, get_function_to_part_map, RANDOM_DEATH_CHANCE
 from srapl_interpreter import SRAPLInterpreter as Interpreter
 from stats import stats_manager, AutomatonStats
 import random
+import logging
+
+logger = logging.getLogger('AUTOMATON')
 
 REPRODUCTION_ENERGY_COST = 10
+DEFAULT_OFFSPRING_ENERGY_RATIO = 0.3  # Domyślnie potomek dostaje 30% energii rodzica
 
 class Automaton:
     def __init__(self, program_code, parts_genome, world, position, debug_interpreter=False, parent_id=None):
@@ -18,7 +22,7 @@ class Automaton:
 
         # Pamięć i Program
         self.memory = [0.0] * 64
-        self.interpreter = Interpreter(program_code, debug=True)
+        self.interpreter = Interpreter(program_code, debug=False)
 
         # Budowanie robota z genomu (listy par (PartType, Scale))
         self.parts = []
@@ -29,6 +33,7 @@ class Automaton:
 
         # System statystyk
         self.stats: AutomatonStats = stats_manager.create_stats(self.birth_tick, parent_id=parent_id)
+        self.stats.start_position = position
 
     def _assemble_robot(self, genome):
         """Tworzy instancje części na podstawie genomu."""
@@ -69,11 +74,6 @@ class Automaton:
         2. Uruchom funkcję części.
         3. Pobierz pasywną energię / koszta.
         """
-        print(
-            f"[Tick {self.world.tick}] Energy={self.energy:.1f} "
-            f"Storage={[(s.contents) for s in self.get_storage_parts()]}"
-        )
-
         if not self.alive:
             return
 
@@ -82,19 +82,9 @@ class Automaton:
 
         # Losowa śmierć (symuluje "wypadki" i wymusza rotację populacji)
         if RANDOM_DEATH_CHANCE > 0 and random.random() < RANDOM_DEATH_CHANCE:
+            self._log_action("random death")
             self.die()
             return
-
-        # Raportowanie gold_fitness po GOLD_FITNESS_TIME tickach od narodzin
-        automaton_age = self.world.tick - self.birth_tick
-        if not self.stats.gold_fitness_reported and automaton_age >= GOLD_FITNESS_TIME:
-            gold_fitness = stats_manager.calculate_gold_fitness(self.stats.automaton_id)
-            self.stats.gold_fitness_reported = True
-            self.stats.gold_fitness_report_tick = self.world.tick
-            # Log gold fitness report
-            import logging
-            logger = logging.getLogger('STATS')
-            logger.info(f"GOLD_FITNESS: automaton_id={self.stats.automaton_id}, gold_fitness={gold_fitness}, tick={self.world.tick}")
 
         # Zapamiętaj pozycję przed ruchem (do obliczenia dystansu)
         old_position = self.position
@@ -108,6 +98,9 @@ class Automaton:
                 func_id = FunctionID(func_id)
             except ValueError:
                 pass  # Nieznane ID - zostaw jako int
+
+        # Określ nazwę akcji do logowania
+        action_name = func_id.name if hasattr(func_id, 'name') else f"f_{func_id}"
 
         # 2. Wykonanie akcji
         actual_fid = func_id.value if hasattr(func_id, 'value') else func_id
@@ -124,6 +117,7 @@ class Automaton:
             dy = self.position[1] - old_position[1]
             distance = (dx**2 + dy**2) ** 0.5
             self.stats.record_movement(distance)
+            action_name = "moving"
 
         # 3. Koszty pasywne
         total_passive_drain = sum(p.passive_energy_drain for p in self.parts)
@@ -140,12 +134,14 @@ class Automaton:
                     energy_gained = self.energy - energy_before
                     if energy_gained > 0:
                         self.stats.record_energy_produced(energy_gained)
+            action_name = "idle/charging"
 
         self.share_resources_with_neighbors()
 
         if self.can_reproduce():
             child = self.reproduce()
             if child is not None:
+                action_name = "producing offspring"
                 # Rejestruj potomka w statystykach
                 self.stats.record_offspring()
                 # rejestracja w świecie – jeśli świat to obsługuje (?)
@@ -155,9 +151,8 @@ class Automaton:
                         adder(child)
                         break
 
-        print(
-            f"[Tick {self.world.tick}] can_reproduce={self.can_reproduce()}"
-        )
+        # Logowanie strukturalne
+        self._log_action(action_name)
 
         # Okresowe raportowanie statystyk
         if stats_manager.should_report(self.stats, self.world.tick):
@@ -166,7 +161,17 @@ class Automaton:
         self.memory[0] = self.energy / self.max_energy
 
         if self.energy <= 0:
+            self._log_action("dying (no energy)")
             self.die()
+
+    def _log_action(self, action: str):
+        """Loguje akcję automatu w ustandaryzowanym formacie."""
+        energy_percent = (self.energy / self.max_energy) * 100
+        logger.info(
+            f"Tick {self.world.tick}: Probe {self.stats.automaton_id} "
+            f"at [{self.position[0]}, {self.position[1]}] "
+            f"with energy {energy_percent:.1f}% {action}"
+        )
 
     def consume_energy(self, amount):
         if self.energy >= amount:
@@ -181,15 +186,11 @@ class Automaton:
             if a != self and abs(a.position[0] - self.position[0]) <= 1 and abs(a.position[1] - self.position[1]) <= 1
         ]
         if not neighbors:
-            print(f"[Tick {self.world.tick}] Automaton at {self.position} has no neighbors to share resources with.")
             return
 
         storages = self.get_storage_parts()
         if not storages:
-            print(f"[Tick {self.world.tick}] Automaton at {self.position} has no storage parts.")
             return
-
-        print(f"[Tick {self.world.tick}] Automaton at {self.position} is attempting to share resources with {len(neighbors)} neighbors.")
 
         for res_type in ResourceType:
             total_amount = sum(storage.contents.get(res_type, 0) for storage in storages)
@@ -201,8 +202,6 @@ class Automaton:
 
                 if neighbor_amount < avg_amount and total_amount > avg_amount:
                     transfer = min(total_amount - avg_amount, avg_amount - neighbor_amount, 1)  # max 1 jednostka na transfer
-
-                    print(f"Sharing {transfer} of {res_type.name} from {self.position} to {neighbor.position}")
 
                     # Usuń z własnych magazynów
                     remaining = transfer
@@ -243,10 +242,14 @@ class Automaton:
         return total_ore >= REQUIRED_ORE
 
     
-    def reproduce(self):
+    def reproduce(self, energy_ratio: float = None):
         """
         Tworzy nowy automat z mutacjami i usuwa zużyte części z magazynu.
         Zakładamy, że can_reproduce() == True.
+
+        Args:
+            energy_ratio: Część energii rodzica przekazywana potomkowi (0.0-1.0).
+                         Jeśli None, używa DEFAULT_OFFSPRING_ENERGY_RATIO.
 
         Mutacje:
         - Program SRAPL: mutacje na poziomie AST (stałe, indeksy, zamiana instrukcji)
@@ -256,6 +259,12 @@ class Automaton:
         from world.tile import WaterTile
         from genetics import GeneticsEngine
         import random
+
+        if energy_ratio is None:
+            energy_ratio = DEFAULT_OFFSPRING_ENERGY_RATIO
+
+        # Ogranicz ratio do sensownego zakresu
+        energy_ratio = max(0.0, min(1.0, energy_ratio))
 
         if self.world.tick - self.birth_tick < 20:
             return None
@@ -319,10 +328,17 @@ class Automaton:
                 spawn_pos = pos
                 break
 
+        # Koszt reprodukcji
         self.consume_energy(REPRODUCTION_ENERGY_COST)
 
+        # --- PRZEKAZANIE ENERGII POTOMKOWI ---
+        # Potomek otrzymuje część energii rodzica (po odjęciu kosztu reprodukcji)
+        energy_for_child = self.energy * energy_ratio
+        self.energy -= energy_for_child
+
         # --- MUTACJA PROGRAMU ---
-        genetics = GeneticsEngine(mutation_rate=0.1)
+        mutation_rate = getattr(self.world, 'mutation_rate', 0.1)
+        genetics = GeneticsEngine(mutation_rate=mutation_rate)
         mutated_program = genetics.mutate_program(self.interpreter.program)
 
         # --- MUTACJA GENOMU CZĘŚCI (skala ±10%) ---
@@ -344,6 +360,9 @@ class Automaton:
             parent_id=self.stats.automaton_id
         )
 
+        # Ustaw energię potomka na przekazaną część energii rodzica
+        child.energy = energy_for_child
+
         self.children_count += 1
 
         return child
@@ -354,15 +373,6 @@ class Automaton:
             return
 
         self.alive = False
-
-        # Oblicz i zaraportuj gold_fitness jeśli nie był jeszcze raportowany
-        if not self.stats.gold_fitness_reported:
-            gold_fitness = stats_manager.calculate_gold_fitness(self.stats.automaton_id)
-            self.stats.gold_fitness_reported = True
-            self.stats.gold_fitness_report_tick = self.world.tick
-            import logging
-            logger = logging.getLogger('STATS')
-            logger.info(f"GOLD_FITNESS (death): automaton_id={self.stats.automaton_id}, gold_fitness={gold_fitness}, tick={self.world.tick}")
 
         # Raportuj statystyki przy śmierci
         stats_manager.report(self.stats, self.world.tick, "death")

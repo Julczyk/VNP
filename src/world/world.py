@@ -21,7 +21,12 @@ class World:
         self.automata = []
         self.wrecks = []
         self.tick = 0
+        self.mutation_rate = 0.1  # Domyślna wartość, może być zmieniona przez Simulation
+        self.verbose = False  # Czy drukować zasoby przy inicjalizacji
         self.generate_map()
+
+    def print_resources(self):
+        """Drukuje informacje o zasobach na mapie."""
         print("=== WORLD INIT ===")
         for y in range(self.height):
             for x in range(self.width):
@@ -305,7 +310,6 @@ class World:
         for automaton in list(self.automata):
             automaton.update()
         self.tick += 1
-        print("WORLD UPDATE", len(self.automata))
 
     def add_wreck(self, position, resources):
         x, y = position

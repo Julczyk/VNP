@@ -144,10 +144,7 @@ def get_parts_classes_ordered():
 STATS_REPORT_INTERVAL = 0
 
 # --------------------------
-# Parametry Gold Fitness i ewolucji:
-
-# Liczba ticków po której obliczany jest gold_fitness automatu
-GOLD_FITNESS_TIME = 200
+# Parametry ewolucji:
 
 # Szansa na losową śmierć automatu (1/100 = 1% per tick)
 RANDOM_DEATH_CHANCE = 0.01

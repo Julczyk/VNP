@@ -313,8 +313,6 @@ class SRAPLInterpreter:
             func_id, args = next(self.generator)
             if self.debug:
                 logger.info(f"Step result: {func_id}, args={args}")
-
-                print(f"Step result: {func_id}, args={args}")
             return func_id, args
         except StopIteration:
             # Program się skończył (nie powinno się zdarzyć z nieskończoną pętlą)

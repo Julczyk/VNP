@@ -29,10 +29,6 @@ class AutomatonStats:
     birth_tick: int = 0
     parent_id: Optional[int] = None
 
-    # Gold fitness tracking
-    gold_fitness_reported: bool = False
-    gold_fitness_report_tick: Optional[int] = None
-
     # Liczniki podstawowe
     steps_executed: int = 0
     distance_traveled: float = 0.0
@@ -50,6 +46,15 @@ class AutomatonStats:
 
     # Ostatni tick raportowania
     last_report_tick: int = 0
+
+    # Pozycja początkowa
+    start_position: tuple = (0, 0)
+
+    # Czy żył na końcu symulacji
+    alive_at_end: bool = True
+
+    # Tick śmierci (None jeśli żyje)
+    death_tick: Optional[int] = None
 
     def record_step(self):
         """Rejestruje wykonanie kroku."""

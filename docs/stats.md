@@ -12,7 +12,7 @@ Dla każdego automatu rejestrowane są:
 |------------|------|
 | `automaton_id` | Unikalny identyfikator automatu |
 | `birth_tick` | Tick narodzin |
-| `parent_id` | ID rodzica (None dla pierwszych automatów) |
+| `parent_id` | ID rodzica (-1 dla automatów startowych) |
 | `steps_executed` | Liczba wykonanych kroków symulacji |
 | `distance_traveled` | Łączna przebyta odległość |
 | `resources_collected` | Zebrane zasoby (per typ) |
@@ -20,8 +20,9 @@ Dla każdego automatu rejestrowane są:
 | `offspring_count` | Liczba potomków |
 | `energy_produced` | Wyprodukowana energia (IDLE + PowerGenerator) |
 | `energy_consumed` | Zużyta energia |
-| `gold_fitness_reported` | Czy gold_fitness został zaraportowany |
-| `gold_fitness_report_tick` | Tick raportowania gold_fitness |
+| `start_position` | Pozycja początkowa automatu |
+| `alive_at_end` | Czy automat żył na końcu symulacji |
+| `death_tick` | Tick śmierci (None jeśli żyje) |
 
 ## Konfiguracja
 
@@ -33,8 +34,7 @@ W `src/config.py`:
 # n > 0 = co n kroków + przy śmierci
 STATS_REPORT_INTERVAL = 0
 
-# Gold Fitness
-GOLD_FITNESS_TIME = 200      # Ticks po których obliczany jest gold_fitness
+# Losowa śmierć
 RANDOM_DEATH_CHANCE = 0.01   # 1% szansa na losową śmierć per tick
 ```
 
@@ -124,32 +124,40 @@ from stats import stats_manager
 stats_manager.reset()
 ```
 
-## Gold Fitness
+## Logowanie akcji
 
-Gold fitness to miara sukcesu ewolucyjnego: suma złota zebranego przez automata i wszystkich jego potomków.
-
-### Obliczanie gold_fitness
-
-```python
-from stats import stats_manager
-
-# Oblicz gold_fitness dla automatu
-gold_fitness = stats_manager.calculate_gold_fitness(automaton_id=1)
-print(f"Gold fitness: {gold_fitness}")
+Każdy automat loguje swoje akcje w formacie:
+```
+Tick [time]: Probe [ID] at [x, y] with energy [%] [action]
 ```
 
-### Automatyczne raportowanie
-
-Gold fitness jest automatycznie raportowany:
-1. Po `GOLD_FITNESS_TIME` tickach od narodzin automatu
-2. Przy śmierci automatu (jeśli nie był wcześniej raportowany)
-
-Format logu:
+Przykłady:
 ```
-GOLD_FITNESS: automaton_id=1, gold_fitness=14, tick=200
+Tick 100: Probe 1 at [15, 20] with energy 75.5% moving
+Tick 101: Probe 1 at [16, 20] with energy 70.2% idle/charging
+Tick 150: Probe 1 at [20, 25] with energy 85.0% producing offspring
 ```
 
-### Losowa śmierć
+## Simulation.py DataFrame
+
+Funkcja `simulate()` zwraca DataFrame z pełnymi danymi automatów:
+
+| Kolumna | Opis |
+|---------|------|
+| `ID` | Identyfikator automatu |
+| `tick` | Tick narodzin |
+| `age` | Wiek (w tickach) |
+| `program` | Genom/program SRAPL |
+| `position` | Pozycja początkowa |
+| `total_distance_traveled` | Łączna przebyta odległość |
+| `energy_produced` | Wyprodukowana energia |
+| `energy_consumed` | Zużyta energia |
+| `offspring_count` | Liczba potomków |
+| `alive_at_end` | Czy żył na końcu |
+| `parent_ID` | ID rodzica (-1 dla startowych) |
+| `{RESOURCE}_gathered` | Zebrane zasoby per typ |
+
+## Losowa śmierć
 
 Parametr `RANDOM_DEATH_CHANCE` wprowadza losową śmierć (1% per tick domyślnie), co:
 - Wymusza rotację populacji
@@ -172,6 +180,7 @@ parent = stats_manager.create_stats(0)
 child = stats_manager.create_stats(10, parent_id=parent.automaton_id)
 parent.record_resource_collected(ResourceType.GOLD, 5)
 child.record_resource_collected(ResourceType.GOLD, 3)
-print(f'Gold fitness: {stats_manager.calculate_gold_fitness(parent.automaton_id)}')
+descendants = stats_manager.get_descendants(parent.automaton_id)
+print(f'Potomkowie: {descendants}')
 "
 ```

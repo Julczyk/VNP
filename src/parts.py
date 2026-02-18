@@ -269,8 +269,6 @@ class Collector(Part):
         f_COLLECT(amount)
         Zbiera zasoby z aktualnego kafelka lub sąsiedztwa.
         """
-        print(">>> COLLECT EXECUTED")
-
         # --- 1. Ile zbieramy ---
         amount = int(args[0]) if args else 1
         amount = max(1, amount)
@@ -312,7 +310,6 @@ class Collector(Part):
                 robot.last_collected_tick = robot.world.tick
                 robot.memory[3] = -1  # wymuś nowe skanowanie (dystans = -1)
 
-                print(f"[Tick {robot.world.tick}] COLLECTED {collected} at {pos}")
                 return True
 
         return False
@@ -366,6 +363,5 @@ class GoldDepositor(Part):
         # Umieść paczkę złota na kafelku
         robot.world.place_gold_package(robot.position, gold_needed, ore_needed)
 
-        print(f"[Tick {robot.world.tick}] DEPOSITED {amount} gold package(s) at {robot.position}")
         return True
 
