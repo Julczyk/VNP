@@ -19,7 +19,7 @@ from sraplBase.SRAPLLexer import SRAPLLexer
 from sraplBase.SRAPLParser import SRAPLParser
 from sraplBase.SRAPLVisitor import SRAPLVisitor
 
-from config import FunctionID
+from config import FunctionID, normalize_function_args, get_expected_arg_count
 
 # --- Konfiguracja logowania ---
 logger = logging.getLogger('SRAPL')
@@ -28,6 +28,9 @@ logging.basicConfig(filename='srapl.log', level=logging.DEBUG)
 # --- Konfiguracja limitów wykonania ---
 MAX_INSTRUCTIONS_PER_TICK = 1000  # Maksymalna liczba instrukcji bez wywołania f_n
 INSTRUCTION_ENERGY_COST = 0.01   # Koszt energii za każdą instrukcję
+
+# --- Statystyki normalizacji argumentów ---
+_args_normalization_stats = {'total_calls': 0, 'normalized': 0}
 
 # --- Wyjątki sterujące przepływem (sygnały, nie błędy) ---
 
@@ -188,6 +191,8 @@ class SRAPLExecutionVisitor(SRAPLVisitor):
         YIELD - zatrzymuje wykonanie i zwraca akcję do symulatora.
         Wywołanie dowolnej funkcji f_n kończy krok czasowy.
         Obsługuje zarówno f_1 jak i f_3.6 (float jest zaokrąglany do int).
+
+        WARSTWA DEFENSYWNA: Normalizuje argumenty do oczekiwanej liczby.
         """
         self._count_instruction()  # Zlicz instrukcję
 
@@ -201,6 +206,17 @@ class SRAPLExecutionVisitor(SRAPLVisitor):
         if ctx.argList():
             for expr in ctx.argList().expression():
                 args.append(float(self.visit(expr)))
+
+        # WARSTWA DEFENSYWNA: Normalizacja argumentów
+        original_len = len(args)
+        expected = get_expected_arg_count(func_id_val)
+        args = normalize_function_args(func_id_val, args)
+
+        # Statystyki normalizacji
+        _args_normalization_stats['total_calls'] += 1
+        if original_len != expected:
+            _args_normalization_stats['normalized'] += 1
+            self._log(f"Args normalized for f_{func_id_val}: {original_len} -> {expected}")
 
         self._log(f"Function call: {func_text}({args})")
 
@@ -626,6 +642,33 @@ class SRAPLInterpreter:
         # PLACEHOLDER - do rozwinięcia
         logger.debug("crossover called (PLACEHOLDER)")
         return self.program_code
+
+
+# --- Statystyki normalizacji argumentów ---
+
+def get_args_normalization_stats() -> dict:
+    """
+    Zwraca statystyki normalizacji argumentów funkcji.
+
+    Returns:
+        Słownik z kluczami:
+        - total_calls: łączna liczba wywołań funkcji
+        - normalized: liczba wywołań wymagających normalizacji
+        - prevention_rate: skuteczność warstwy prewencyjnej (0.0-1.0)
+    """
+    stats = _args_normalization_stats.copy()
+    total = stats['total_calls']
+    if total > 0:
+        stats['prevention_rate'] = 1.0 - (stats['normalized'] / total)
+    else:
+        stats['prevention_rate'] = 1.0
+    return stats
+
+
+def reset_args_normalization_stats():
+    """Resetuje statystyki normalizacji argumentów."""
+    global _args_normalization_stats
+    _args_normalization_stats = {'total_calls': 0, 'normalized': 0}
 
 
 # --- Aliasy dla kompatybilności wstecznej ---

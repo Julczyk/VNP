@@ -28,6 +28,8 @@ from sraplBase.SRAPLLexer import SRAPLLexer
 from sraplBase.SRAPLParser import SRAPLParser
 from sraplBase.SRAPLVisitor import SRAPLVisitor
 
+from config import FUNCTION_SIGNATURES, FunctionID, get_expected_arg_count
+
 logger = logging.getLogger('Genetics')
 
 # Dostępne operatory matematyczne
@@ -138,12 +140,65 @@ class SRAPLCodeGenerator(SRAPLVisitor):
         return f"{mem_ref} = {expr};"
 
     def visitFunctionCall(self, ctx: SRAPLParser.FunctionCallContext) -> str:
-        """Generuje wywołanie funkcji f_n(args);"""
-        func_id = ctx.FUNC_ID().getText()
-        args = ""
+        """
+        Generuje wywołanie funkcji f_n(args);
+
+        WARSTWA PREWENCYJNA: Naprawia liczbę argumentów zgodnie z sygnaturą funkcji.
+        """
+        func_text = ctx.FUNC_ID().getText()  # "f_1" lub "f_3.6"
+
+        # Parsuj ID funkcji
+        func_num_str = func_text.split('_')[1]
+        func_id_val = int(round(float(func_num_str)))
+
+        # Pobierz oczekiwaną liczbę argumentów
+        expected_args = get_expected_arg_count(func_id_val)
+
+        # Zbierz aktualne argumenty
+        current_args = []
         if ctx.argList():
-            args = self.visit(ctx.argList())
-        return f"{func_id}({args});"
+            for expr in ctx.argList().expression():
+                current_args.append(self.visit(expr))
+
+        # Napraw liczbę argumentów
+        fixed_args = self._fix_function_args(func_id_val, current_args, expected_args)
+
+        args_str = ", ".join(fixed_args)
+        return f"f_{func_id_val}({args_str});"
+
+    def _fix_function_args(self, func_id: int, args: list, expected: int) -> list:
+        """
+        Naprawia listę argumentów funkcji.
+
+        Args:
+            func_id: ID funkcji (int)
+            args: Aktualna lista argumentów (stringi)
+            expected: Oczekiwana liczba argumentów
+
+        Returns:
+            Naprawiona lista argumentów
+        """
+        result = list(args)
+
+        # Pobierz wartości domyślne
+        try:
+            func_enum = FunctionID(func_id)
+            signature = FUNCTION_SIGNATURES.get(func_enum, {})
+            defaults = signature.get('defaults', ())
+        except ValueError:
+            defaults = ()
+
+        # Uzupełnij brakujące argumenty
+        while len(result) < expected:
+            idx = len(result)
+            default_val = defaults[idx] if idx < len(defaults) else 0.0
+            result.append(f"{default_val}")
+
+        # Obetnij nadmiarowe
+        if len(result) > expected:
+            result = result[:expected]
+
+        return result
 
     def visitArgList(self, ctx: SRAPLParser.ArgListContext) -> str:
         """Generuje listę argumentów."""
@@ -496,23 +551,43 @@ class GeneticsEngine:
 
     def _generate_random_function_call(self) -> str:
         """
-        Generuje losowe wywołanie funkcji robota.
+        Generuje losowe wywołanie funkcji robota z POPRAWNĄ liczbą argumentów.
+
+        Używa sygnatur funkcji z config.py, aby wygenerować odpowiednią
+        liczbę argumentów dla każdej funkcji.
 
         Returns:
             String z wywołaniem funkcji f_n(args);
         """
         func_id = random.choice(AVAILABLE_FUNCTIONS)
-        num_args = random.randint(0, 3)
+
+        # Pobierz sygnaturę funkcji
+        try:
+            func_enum = FunctionID(func_id)
+            signature = FUNCTION_SIGNATURES.get(func_enum, {})
+        except ValueError:
+            signature = {}
+
+        expected_args = signature.get('args', 0)
+        defaults = signature.get('defaults', ())
+
         args = []
-        for _ in range(num_args):
-            if random.random() < 0.5:
-                # Użyj odwołania do pamięci
+        for i in range(expected_args):
+            # Losowo wybierz typ argumentu
+            arg_type = random.choice(['memory', 'constant', 'default'])
+
+            if arg_type == 'memory':
+                # Odwołanie do pamięci X[k]
                 idx = random.randint(0, self.MEMORY_INDEX_MAX)
                 args.append(f"X[{idx}]")
-            else:
-                # Użyj stałej liczbowej
+            elif arg_type == 'constant':
+                # Losowa stała liczbowa
                 value = round(random.uniform(0.0, 5.0), 1)
                 args.append(f"{value}")
+            else:
+                # Wartość domyślna z sygnatury
+                default_val = defaults[i] if i < len(defaults) else 0.0
+                args.append(f"{default_val}")
 
         args_str = ", ".join(args)
         return f"f_{func_id}({args_str});"

@@ -211,7 +211,12 @@ class Assembler(Part):
         Produkuje część i odkłada ją do magazynu
         """
         part_id = int(args[0])
-        part_type = ResourceType(part_id)
+
+        # Walidacja: sprawdź czy part_id jest poprawnym ResourceType
+        try:
+            part_type = ResourceType(part_id)
+        except ValueError:
+            return False  # Niepoprawny ID części - nic nie rób
 
         if part_type not in PART_RECIPES:
             return False

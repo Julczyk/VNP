@@ -149,3 +149,120 @@ STATS_REPORT_INTERVAL = 0
 # Szansa na losową śmierć automatu (0 = wyłączona, 0.01 = 1% per tick)
 # Domyślnie wyłączona - można włączyć w funkcji simulate()
 RANDOM_DEATH_CHANCE = 0.0
+
+# --------------------------
+# Sygnatury funkcji SRAPL (f_0 do f_8):
+# Definiują oczekiwaną liczbę argumentów i wartości domyślne
+
+FUNCTION_SIGNATURES = {
+    FunctionID.IDLE: {
+        'name': 'IDLE',
+        'args': 0,
+        'arg_names': (),
+        'defaults': (),
+    },
+    FunctionID.MOVE: {
+        'name': 'MOVE',
+        'args': 2,
+        'arg_names': ('direction', 'distance'),
+        'defaults': (0.0, 1.0),
+    },
+    FunctionID.SCAN: {
+        'name': 'SCAN',
+        'args': 2,
+        'arg_names': ('power', 'resource_type'),
+        'defaults': (1.0, 0.0),
+    },
+    FunctionID.STORE: {
+        'name': 'STORE',
+        'args': 1,
+        'arg_names': ('action',),
+        'defaults': (0.0,),
+    },
+    FunctionID.SMELT: {
+        'name': 'SMELT',
+        'args': 1,
+        'arg_names': ('amount',),
+        'defaults': (1.0,),
+    },
+    FunctionID.ASSEMBLE: {
+        'name': 'ASSEMBLE',
+        'args': 1,
+        'arg_names': ('part_type',),
+        'defaults': (0.0,),
+    },
+    FunctionID.CHECK_BAT: {
+        'name': 'CHECK_BAT',
+        'args': 0,
+        'arg_names': (),
+        'defaults': (),
+    },
+    FunctionID.COLLECT: {
+        'name': 'COLLECT',
+        'args': 1,
+        'arg_names': ('amount',),
+        'defaults': (1.0,),
+    },
+    FunctionID.DEPOSIT: {
+        'name': 'DEPOSIT',
+        'args': 1,
+        'arg_names': ('amount',),
+        'defaults': (1.0,),
+    },
+}
+
+
+def get_function_signature(func_id) -> dict:
+    """
+    Zwraca sygnaturę funkcji dla danego ID.
+
+    Args:
+        func_id: FunctionID enum lub int
+
+    Returns:
+        Słownik z sygnaturą lub None jeśli nieznana funkcja
+    """
+    if isinstance(func_id, int):
+        try:
+            func_id = FunctionID(func_id)
+        except ValueError:
+            return None
+    return FUNCTION_SIGNATURES.get(func_id)
+
+
+def get_expected_arg_count(func_id) -> int:
+    """Zwraca oczekiwaną liczbę argumentów dla funkcji."""
+    sig = get_function_signature(func_id)
+    return sig['args'] if sig else 0
+
+
+def normalize_function_args(func_id, args: list) -> list:
+    """
+    Normalizuje argumenty funkcji do oczekiwanej liczby.
+
+    - Uzupełnia brakujące argumenty wartościami domyślnymi
+    - Obcina nadmiarowe argumenty
+
+    Args:
+        func_id: FunctionID enum lub int
+        args: Lista argumentów
+
+    Returns:
+        Znormalizowana lista argumentów
+    """
+    sig = get_function_signature(func_id)
+    if not sig:
+        return list(args)
+
+    result = list(args)
+    expected = sig['args']
+    defaults = sig['defaults']
+
+    # Uzupełnij brakujące argumenty wartościami domyślnymi
+    while len(result) < expected:
+        idx = len(result)
+        default_val = defaults[idx] if idx < len(defaults) else 0.0
+        result.append(default_val)
+
+    # Obetnij nadmiarowe argumenty
+    return result[:expected]
